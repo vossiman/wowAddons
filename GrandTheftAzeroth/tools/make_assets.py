@@ -326,7 +326,13 @@ def mix(*parts):
 
 def write(sig, name):
     SND.mkdir(parents=True, exist_ok=True)
-    sig = sig / (np.max(np.abs(sig)) + 1e-9) * 0.89
+    # Level by loudness (RMS), not peak, so short blips and long sirens sit at the same volume.
+    rms = np.sqrt(np.mean(sig ** 2)) + 1e-9
+    target = 0.045 if name.startswith("radio_") else 0.06
+    sig = sig * (target / rms)
+    peak = np.max(np.abs(sig))
+    if peak > 0.5:
+        sig = sig * (0.5 / peak)
     with tempfile.TemporaryDirectory() as tmp:
         wav = Path(tmp) / "x.wav"
         with wave.open(str(wav), "wb") as w:

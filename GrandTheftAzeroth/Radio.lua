@@ -59,7 +59,7 @@ end
 
 local function playLoop(s)
     if s.file then
-        handle = GTA:Sound(s.file)
+        handle = GTA:Sound(s.file, "Music")
         loopTimer = C_Timer.NewTimer(s.length, function() playLoop(s) end)
     end
 end

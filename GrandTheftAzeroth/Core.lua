@@ -55,12 +55,12 @@ function GTA:Stat(key, delta)
     return s[key]
 end
 
-function GTA:Sound(name)
+function GTA:Sound(name, channel)
     if not (self.db and self.db.sound) then return end
     self.soundLog = self.soundLog or {}
     table.insert(self.soundLog, date("%H:%M:%S") .. "  " .. name .. "  <- " .. (debugstack(2, 1, 0):match("([%w_]+%.lua:%d+)") or "?"))
     if #self.soundLog > 20 then table.remove(self.soundLog, 1) end
-    local ok, handle = PlaySoundFile(self.PATH .. "sounds\\" .. name .. ".ogg", "Master")
+    local ok, handle = PlaySoundFile(self.PATH .. "sounds\\" .. name .. ".ogg", channel or "SFX")
     return ok and handle or nil
 end
 
