@@ -6,6 +6,7 @@
 ## AddonCompartmentFunc: GrandTheftAzeroth_TogglePhone
 ## IconTexture: Interface\AddOns\GrandTheftAzeroth\media\textures\respect.png
 ## SavedVariables: GrandTheftAzerothDB
+## X-License: MIT
 
 Core.lua
 Display.lua
