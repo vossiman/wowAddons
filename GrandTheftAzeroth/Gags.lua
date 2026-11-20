@@ -272,6 +272,11 @@ poster.name = poster:CreateFontString(nil, "OVERLAY")
 poster.name:SetFont(GTA.FONT_BLOCK, 26, "")
 poster.name:SetTextColor(0.35, 0.12, 0.08)
 poster.name:SetPoint("TOP", 0, -298)
+GTA:Movable(poster, "poster", function(f) f:Hide() end, function()
+    SetPortraitTexture(poster.face, "player")
+    poster.name:SetText("SHIFT-DRAG ME")
+    GTA.TempShow(poster, 20, function() return UnitIsAFK("player") end)
+end)
 
 GTA:RegisterEvent("PLAYER_FLAGS_CHANGED", function(unit)
     if unit ~= "player" then return end
@@ -389,6 +394,12 @@ district.tag:SetPoint("TOPRIGHT", district.name, "BOTTOMRIGHT", 0, -6)
 district.tag:SetTextColor(1, 0.77, 0.16)
 
 local lastZone
+GTA:Movable(district, "district", function(f) f:Hide() end, function()
+    district.name:SetText(Safe(GetZoneText()) or "District")
+    district.tag:SetText("Shift-drag me. Click to close.")
+    GTA.TempShow(district)
+end)
+
 local function showDistrict(force)
     if not GTA:On("districts") then return end
     local zone = Safe(GetZoneText()) or ""

@@ -201,3 +201,87 @@ GTA:Command("sounds", "what just made that noise? (last 10 sounds and where they
     GTA:Print("last sounds:")
     for i = math.max(1, #log - 9), #log do print("  " .. log[i]) end
 end)
+
+---------------------------------------------------------------- movable frames
+-- Shift-drag moves any addon frame (position saved per frame); a plain click runs onClick (usually: dismiss).
+GTA.movables = {}
+
+local function savePos(frame, key)
+    local point, _, rel, x, y = frame:GetPoint(1)
+    GTA.db.positions = GTA.db.positions or {}
+    GTA.db.positions[key] = { point, rel, x, y }
+end
+
+local function applyPos(m)
+    local p = GTA.db.positions and GTA.db.positions[m.key]
+    m.frame:ClearAllPoints()
+    if p then
+        m.frame:SetPoint(p[1], UIParent, p[2], p[3], p[4])
+    else
+        for _, pt in ipairs(m.defaults) do m.frame:SetPoint(unpack(pt)) end
+    end
+end
+
+function GTA:Movable(frame, key, onClick, preview)
+    local m = { frame = frame, key = key, preview = preview, defaults = {} }
+    for i = 1, frame:GetNumPoints() do
+        local point, rel, relPoint, x, y = frame:GetPoint(i)
+        m.defaults[i] = { point, rel or UIParent, relPoint, x, y }
+    end
+    self.movables[key] = m
+    frame:SetMovable(true)
+    frame:EnableMouse(true)
+    frame:SetClampedToScreen(true)
+    frame:RegisterForDrag("LeftButton")
+    frame:SetScript("OnDragStart", function(f)
+        if IsShiftKeyDown() then
+            f.gtaMoving = true
+            f:StartMoving()
+        end
+    end)
+    frame:SetScript("OnDragStop", function(f)
+        f:StopMovingOrSizing()
+        if f.gtaMoving then savePos(f, key) end
+    end)
+    frame:SetScript("OnMouseUp", function(f, button)
+        if f.gtaMoving then f.gtaMoving = false return end
+        if not IsShiftKeyDown() and onClick then onClick(f, button) end
+    end)
+    if self.db then applyPos(m) end
+end
+
+GTA:OnLogin(function()
+    if GTA.db.hudPos and not (GTA.db.positions and GTA.db.positions.hud) then
+        GTA.db.positions = GTA.db.positions or {}
+        GTA.db.positions.hud = GTA.db.hudPos
+    end
+    GTA.db.hudPos = nil
+    for _, m in pairs(GTA.movables) do applyPos(m) end
+end)
+
+function GTA.TempShow(frame, seconds, keep)
+    frame:Show()
+    frame:SetAlpha(1)
+    C_Timer.After(seconds or 20, function()
+        if not (keep and keep()) then frame:Hide() end
+    end)
+end
+
+function GTA:ShowLayout()
+    self:Print("layout mode: shift-drag anything into place. Frames hide again in 20 seconds.")
+    for _, m in pairs(self.movables) do
+        if m.preview then
+            local ok, err = pcall(m.preview)
+            if not ok then self:Error("layout " .. m.key, err) end
+        end
+    end
+end
+
+function GTA:ResetLayout()
+    if self.db.positions then wipe(self.db.positions) end
+    for _, m in pairs(self.movables) do applyPos(m) end
+    self:Print("all frames back to their default spots.")
+end
+
+GTA:Command("layout", "show every frame so you can shift-drag them into place", function() GTA:ShowLayout() end)
+GTA:Command("resetlayout", "put every frame back where it started", function() GTA:ResetLayout() end)

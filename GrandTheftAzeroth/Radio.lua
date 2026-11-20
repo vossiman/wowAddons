@@ -43,6 +43,11 @@ nowPlaying.label:SetFont(GTA.FONT_TITLE, 90, "THICKOUTLINE")
 nowPlaying.label:SetPoint("TOP", nowPlaying, "BOTTOM", 0, -10)
 nowPlaying.label:SetTextColor(1, 0.77, 0.16)
 
+GTA:Movable(nowPlaying, "radio", function(f) f:Hide() end, function()
+    nowPlaying.label:SetText("RADIO")
+    GTA.TempShow(nowPlaying)
+end)
+
 local function flashWheel(text)
     nowPlaying.label:SetText(text)
     nowPlaying:Show()

@@ -69,8 +69,11 @@ phone.bubble:SetColorTexture(1, 1, 1, 0.92)
 phone.bubble:SetPoint("TOPLEFT", phone.msg, "TOPLEFT", -10, 10)
 phone.bubble:SetPoint("BOTTOMRIGHT", phone.msg, "BOTTOMRIGHT", 10, -10)
 
-phone:EnableMouse(true)
-phone:SetScript("OnMouseDown", function(self) self:Hide() end)
+GTA:Movable(phone, "texts", function(f) f:Hide() end, function()
+    phone.from:SetText("Layout Mode")
+    phone.msg:SetText("Shift-drag me where you want your texts. Click to close.")
+    GTA.TempShow(phone)
+end)
 
 function GTA:PhoneText(from, msg)
     if not self:On("phone") then return end

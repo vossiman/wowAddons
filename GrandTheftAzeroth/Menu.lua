@@ -6,12 +6,7 @@ phone:SetSize(256, 512)
 phone:SetScale(1.1)
 phone:SetPoint("RIGHT", UIParent, "RIGHT", -120, 0)
 phone:SetFrameStrata("DIALOG")
-phone:SetMovable(true)
-phone:EnableMouse(true)
-phone:RegisterForDrag("LeftButton")
-phone:SetClampedToScreen(true)
-phone:SetScript("OnDragStart", phone.StartMoving)
-phone:SetScript("OnDragStop", phone.StopMovingOrSizing)
+GTA:Movable(phone, "menu")
 phone:Hide()
 table.insert(UISpecialFrames, "GrandTheftAzerothPhone")
 
@@ -105,20 +100,22 @@ local APPS = {
         cmd(GTA.db.enabled and "off" or "on")()
         GTA:RefreshHud()
     end },
+    { icon = "card_ride", label = function() return "Layout" end, run = function() phone:Hide() GTA:ShowLayout() end },
+    { icon = "star_empty", label = function() return "Reset\nlayout" end, run = function() GTA:ResetLayout() end },
 }
 
 local appButtons = {}
 for i, app in ipairs(APPS) do
     local col, row = (i - 1) % 3, math.floor((i - 1) / 3)
     local b = CreateFrame("Button", nil, home)
-    b:SetSize(62, 82)
-    b:SetPoint("TOPLEFT", 4 + col * 66, -4 - row * 92)
+    b:SetSize(62, 72)
+    b:SetPoint("TOPLEFT", 4 + col * 66, -2 - row * 76)
     b.icon = b:CreateTexture(nil, "ARTWORK")
-    b.icon:SetSize(46, 46)
+    b.icon:SetSize(40, 40)
     b.icon:SetPoint("TOP", 0, -2)
     b.icon:SetTexture(GTA:Tex(app.icon))
     local plate = b:CreateTexture(nil, "BACKGROUND")
-    plate:SetSize(54, 54)
+    plate:SetSize(48, 48)
     plate:SetPoint("CENTER", b.icon)
     plate:SetColorTexture(0, 0, 0, 0.35)
     b:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
@@ -304,9 +301,4 @@ end)
 GTA:Command("minimap", "show or hide the minimap button", function()
     GTA.db.minimapButton = GTA.db.minimapButton == false
     mm:SetShown(GTA.db.minimapButton)
-end)
-
--- Clicking the cash / stars display (without shift) opens the phone too.
-GTA.hud:SetScript("OnMouseUp", function(_, button)
-    if button == "LeftButton" and not IsShiftKeyDown() then GTA:TogglePhone() end
 end)

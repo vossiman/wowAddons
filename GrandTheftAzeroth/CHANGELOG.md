@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.2-beta (first public release)
+## 0.5.3-beta (first public release)
 
 - Phone menu ("Murloc Mobile") with a minimap button, key binding and addon-list entry
 - Death screen, mission banners, wanted stars, cash counter, stolen rides, speedometer, taxi meter
@@ -11,3 +11,4 @@
 - Visual-only cheat codes
 - Text pop-ups wait until combat ends; recent ones are kept in the Messages app
 - Volume setting (off, low, med, high) in the phone; sounds follow the game's Sound Effects volume, the radio follows the Music volume
+- Every frame can be shift-dragged and remembers its spot; a click closes pop-ups like the news ticker; Layout and Reset layout apps in the phone

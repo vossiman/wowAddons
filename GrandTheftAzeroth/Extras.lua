@@ -20,9 +20,16 @@ meter.fare:SetPoint("BOTTOM", 0, 8)
 meter.fare:SetTextColor(1, 0.3, 0.3)
 
 local fare, rate, started = 0, 0, 0
+GTA:Movable(meter, "taxi", nil, function()
+    if meter:IsShown() then return end
+    meter.previewing, fare, rate = true, 0, 5
+    meter:Show()
+    C_Timer.After(20, function() meter.previewing = false meter:Hide() end)
+end)
 meter:SetScript("OnUpdate", function(self, dt)
     fare = fare + rate * dt
     self.fare:SetText(GTA.Commas(fare))
+    if self.previewing then return end
     if not UnitOnTaxi("player") and GetTime() - started > 2 then
         self:Hide()
         local secs = math.floor(GetTime() - started)

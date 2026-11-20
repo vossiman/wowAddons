@@ -46,6 +46,9 @@ banner.sub:SetFont(GTA.FONT_BLOCK, 38, "OUTLINE")
 banner.sub:SetPoint("TOP", banner, "BOTTOM", 0, 20)
 banner.sub:SetTextColor(1, 1, 1)
 banner.anim = fadeGroup(banner, 2.4)
+GTA:Movable(banner, "banner", function(f) f.anim:Stop() f:Hide() end, function()
+    GTA:Banner({ texture = "logo_wordmark", sub = "shift-drag me, click to close", hold = 18, priority = true })
+end)
 
 local queue = {}
 local function nextBanner()
@@ -94,6 +97,9 @@ toast.text:SetJustifyH("LEFT")
 toast.text:SetJustifyV("MIDDLE")
 toast.text:SetTextColor(1, 1, 1)
 toast.anim = fadeGroup(toast, 4, 1.05)
+GTA:Movable(toast, "toast", function(f) f.anim:Stop() f:Hide() end, function()
+    GTA:Toast("|cffffc428MESSAGES|r\nShift-drag me. Click to close.", nil, 18, true)
+end)
 
 local toasts = {}
 local function nextToast()
@@ -141,9 +147,8 @@ end)
 
 -- Breaking-news ticker scrolling along the bottom of the screen.
 local ticker = CreateFrame("Frame", nil, UIParent)
-ticker:SetPoint("BOTTOMLEFT", 0, 0)
-ticker:SetPoint("BOTTOMRIGHT", 0, 0)
-ticker:SetHeight(34)
+ticker:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 0)
+ticker:SetSize(UIParent:GetWidth(), 34)
 ticker:SetFrameStrata("HIGH")
 ticker:SetClipsChildren(true)
 ticker:Hide()
@@ -169,7 +174,12 @@ ticker:SetScript("OnUpdate", function(self, dt)
     if self.x < -self.text:GetStringWidth() then self:Hide() end
 end)
 
+GTA:Movable(ticker, "ticker", function(f) f:Hide() end, function()
+    GTA:News("LAYOUT MODE: SHIFT-DRAG THIS TICKER UP OR DOWN. CLICK IT TO CLOSE.")
+end)
+
 function GTA:News(text)
+    ticker:SetWidth(UIParent:GetWidth())
     ticker.text:SetText(text .. "        ///        " .. text)
     ticker.x = UIParent:GetWidth()
     ticker:Show()

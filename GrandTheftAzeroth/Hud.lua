@@ -4,20 +4,12 @@ local hud = CreateFrame("Frame", "GrandTheftAzerothHud", UIParent)
 GTA.hud = hud
 hud:SetSize(260, 90)
 hud:SetFrameStrata("MEDIUM")
-hud:SetMovable(true)
-hud:EnableMouse(true)
-hud:RegisterForDrag("LeftButton")
-hud:SetClampedToScreen(true)
-hud:SetScript("OnDragStart", function(self) if IsShiftKeyDown() then self:StartMoving() end end)
-hud:SetScript("OnDragStop", function(self)
-    self:StopMovingOrSizing()
-    local point, _, rel, x, y = self:GetPoint()
-    GTA.db.hudPos = { point, rel, x, y }
-end)
+hud:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -20, -230)
+GTA:Movable(hud, "hud", function() if GTA.TogglePhone then GTA:TogglePhone() end end)
 hud:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_LEFT")
     GameTooltip:AddLine("Grand Theft Azeroth")
-    GameTooltip:AddLine("Shift-drag to move. /gta for commands.", 1, 1, 1)
+    GameTooltip:AddLine("Click: open phone. Shift-drag: move.", 1, 1, 1)
     GameTooltip:Show()
 end)
 hud:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -110,6 +102,12 @@ ride.sub:SetFont(GTA.FONT_BLOCK, 24, "")
 ride.sub:SetPoint("TOP", ride.name, "BOTTOM", 0, -4)
 ride.sub:SetTextColor(1, 0.77, 0.16)
 
+GTA:Movable(ride, "ride", function(f) f:Hide() end, function()
+    ride.name:SetText("STOLEN RIDE CARD")
+    ride.sub:SetText("shift-drag me")
+    GTA.TempShow(ride)
+end)
+
 function GTA:RideCard(name, sub)
     ride.name:SetText(name)
     ride.sub:SetText(sub or "")
@@ -147,18 +145,13 @@ speedo:SetScript("OnUpdate", function(_, dt)
     needle:SetRotation(math.rad(120 - frac * 240))
 end)
 
+GTA:Movable(speedo, "speedo", nil, function() GTA.TempShow(speedo, 20, function() return IsMounted() end) end)
+
 function GTA:ShowSpeedo(show)
     speedo:SetShown(show and hasSpeed and self:On("rides"))
 end
 
 GTA:OnLogin(function()
-    hud:ClearAllPoints()
-    local p = GTA.db.hudPos
-    if p then
-        hud:SetPoint(p[1], UIParent, p[2], p[3], p[4])
-    else
-        hud:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -20, -230)
-    end
     GTA:SetCash(GetMoney(), false)
     GTA:RefreshHud()
 end)
