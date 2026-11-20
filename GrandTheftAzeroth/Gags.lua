@@ -51,7 +51,7 @@ GTA:RegisterEvent("QUEST_TURNED_IN", function(questID, xp)
     if not GTA:On("missions") then return end
     local respect = math.max(1, math.floor((tonumber(xp) or 0) / 150)) + math.random(0, 3)
     GTA:Stat("missions")
-    GTA:Stat("respect", respect)
+    GTA:AddRespect(respect)
     GTA:Banner({ texture = "mission_passed", sound = "mission_passed",
         sub = (questTitle(questID) or "Mission") .. "   |cffffc428+" .. respect .. " RESPECT|r" })
     GTA:Confetti(2.5)
@@ -71,7 +71,8 @@ end
 
 GTA:RegisterEvent("PLAYER_LEVEL_UP", function(level)
     if not GTA:On("missions") then return end
-    GTA:Stat("respect", 10)
+    GTA:AddRespect(10)
+    GTA:Cutscene("Level " .. tostring(level), "Same face. Bigger ego.", 3.5)
     GTA:Banner({ texture = "level_up", sound = "level_up", sub = "LEVEL " .. tostring(level) .. "   |cffffc428+10 RESPECT|r", priority = true })
     GTA:Confetti(4)
 end)
@@ -79,6 +80,8 @@ end)
 GTA:RegisterEvent("BOSS_KILL", function(_, name)
     if not GTA:On("missions") then return end
     GTA:Banner({ text = "HEIST COMPLETE", color = { 0.24, 0.85, 0.35 }, sound = "airhorn", sub = Safe(name) or "The crew splits the loot. Badly." })
+    GTA:Cutscene("The Heist", "Starring: you. Special thanks: the healer.", 4)
+    GTA:AddRespect(50)
     GTA:Confetti(4)
 end)
 
@@ -98,7 +101,7 @@ GTA:RegisterEvent("PLAYER_MONEY", function()
     GTA:SetCash(now, true)
     if diff > 0 then
         GTA:Stat("earned", diff)
-        if throttle("chaching", 1.5) then GTA:Sound("cha_ching") end
+        if not UnitAffectingCombat("player") and throttle("chaching", 1.5) then GTA:Sound("cha_ching") end
         if diff >= 10000 and throttle("bigscore", 30) then GTA:Sticker("burst_loot", nil, 0.8) end
     elseif diff < 0 and merchantOpen and throttle("spree", 90) then
         GTA:Banner({ texture = "shopping_spree", sound = "cha_ching", hold = 1.6 })

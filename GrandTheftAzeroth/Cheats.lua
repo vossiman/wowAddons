@@ -57,6 +57,10 @@ local CHEATS = {
     end,
 }
 
+GTA.CHEAT_NAMES = {}
+for k in pairs(CHEATS) do table.insert(GTA.CHEAT_NAMES, k) end
+table.sort(GTA.CHEAT_NAMES)
+
 function GTA:TryCheat(code)
     local fn = CHEATS[code:lower()]
     if not fn then return false end

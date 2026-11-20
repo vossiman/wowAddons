@@ -23,17 +23,22 @@ function GTA:SetWanted(n, reason)
     heat = CALM_PER_STAR
     flash = up and 3 or 0
     draw()
+    -- Stars only make noise together with something big on screen: the text box carries
+    -- the blip (and waits for combat to end), the siren comes with flashing police lights.
     if up then
-        self:Sound("star_up")
+        for i = 1, level do self.hud.stars[i].pulse:Play() end
         if reason then self:Toast("|cffffc428WANTED LEVEL " .. level .. "|r\n" .. reason, "star_up", 3) end
-        if level > (self.db.stats.maxWanted or 0) then self.db.stats.maxWanted = level end
+        if level > (self.db.stats.maxWanted or 0) then
+            self.db.stats.maxWanted = level
+            if self.CheckAchievements then self:CheckAchievements("maxWanted") end
+        end
         if level >= 3 and not sirenHandle then
             sirenHandle = self:Sound("siren")
+            self:PoliceLights(3)
             C_Timer.After(3, function() sirenHandle = nil end)
         end
-    else
-        self:Sound("star_down")
-        if level == 0 then self:Toast("You lost the cops. |cff5fe05fHeat cleared.|r", "star_down", 3) end
+    elseif level == 0 then
+        self:Toast("You lost the cops. |cff5fe05fHeat cleared.|r", "star_down", 3)
     end
 end
 

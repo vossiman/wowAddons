@@ -28,6 +28,12 @@ for i = 1, 5 do
     local s = hud:CreateTexture(nil, "ARTWORK")
     s:SetSize(34, 34)
     s:SetPoint("TOPRIGHT", hud, "TOPRIGHT", -(5 - i) * 36, 0)
+    s.pulse = s:CreateAnimationGroup()
+    local grow = s.pulse:CreateAnimation("Scale")
+    grow:SetScaleFrom(2.2, 2.2)
+    grow:SetScaleTo(1, 1)
+    grow:SetDuration(0.35)
+    grow:SetSmoothing("OUT")
     hud.stars[i] = s
 end
 

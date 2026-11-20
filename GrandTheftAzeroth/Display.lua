@@ -108,10 +108,115 @@ local function nextToast()
 end
 toast:SetScript("OnHide", function() C_Timer.After(0.2, nextToast) end)
 
-function GTA:Toast(text, sound, hold)
+-- Text boxes wait until combat ends so they are not missed mid-fight; urgent=true skips the wait.
+local deferred, history = {}, {}
+GTA.history = history
+
+function GTA:Toast(text, sound, hold, urgent)
+    local plain = text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub("\n", " - ")
+    table.insert(history, date("%H:%M") .. "  " .. plain)
+    while #history > 40 do table.remove(history, 1) end
+    if not urgent and UnitAffectingCombat("player") then
+        if #deferred < 4 then table.insert(deferred, { text = text, sound = sound, hold = hold }) end
+        return
+    end
     if #toasts > 5 then return end
     table.insert(toasts, { text = text, sound = sound, hold = hold })
     nextToast()
+end
+
+GTA:RegisterEvent("PLAYER_REGEN_ENABLED", function()
+    C_Timer.After(1.5, function()
+        if UnitAffectingCombat("player") then return end
+        for _, t in ipairs(deferred) do table.insert(toasts, t) end
+        wipe(deferred)
+        nextToast()
+    end)
+end)
+
+GTA:Command("log", "re-read the last pop-up messages", function()
+    GTA:Print("recent messages:")
+    for i = math.max(1, #history - 14), #history do print("  " .. history[i]) end
+end)
+
+-- Breaking-news ticker scrolling along the bottom of the screen.
+local ticker = CreateFrame("Frame", nil, UIParent)
+ticker:SetPoint("BOTTOMLEFT", 0, 0)
+ticker:SetPoint("BOTTOMRIGHT", 0, 0)
+ticker:SetHeight(34)
+ticker:SetFrameStrata("HIGH")
+ticker:SetClipsChildren(true)
+ticker:Hide()
+local tkbg = ticker:CreateTexture(nil, "BACKGROUND")
+tkbg:SetAllPoints()
+tkbg:SetColorTexture(0.55, 0, 0, 0.85)
+local tklabel = ticker:CreateFontString(nil, "OVERLAY")
+tklabel:SetFont(GTA.FONT_BLOCK, 20, "")
+tklabel:SetPoint("LEFT", 0, 0)
+tklabel:SetText("  BREAKING  ")
+local tklbg = ticker:CreateTexture(nil, "ARTWORK")
+tklbg:SetColorTexture(1, 1, 1, 1)
+tklbg:SetPoint("TOPLEFT")
+tklbg:SetPoint("BOTTOMRIGHT", tklabel, "BOTTOMRIGHT", 0, -7)
+tklabel:SetTextColor(0.6, 0, 0)
+tklabel:SetDrawLayer("OVERLAY", 7)
+ticker.text = ticker:CreateFontString(nil, "OVERLAY")
+ticker.text:SetFont(GTA.FONT_BLOCK, 20, "")
+ticker.text:SetTextColor(1, 1, 1)
+ticker:SetScript("OnUpdate", function(self, dt)
+    self.x = self.x - dt * 140
+    self.text:SetPoint("LEFT", self, "LEFT", self.x, 0)
+    if self.x < -self.text:GetStringWidth() then self:Hide() end
+end)
+
+function GTA:News(text)
+    ticker.text:SetText(text .. "        ///        " .. text)
+    ticker.x = UIParent:GetWidth()
+    ticker:Show()
+    self:Sound("text_ping")
+end
+
+-- Camera flash.
+local flash = CreateFrame("Frame", nil, UIParent)
+flash:SetAllPoints(UIParent)
+flash:SetFrameStrata("FULLSCREEN_DIALOG")
+flash:Hide()
+local ftex = flash:CreateTexture(nil, "OVERLAY")
+ftex:SetAllPoints()
+ftex:SetColorTexture(1, 1, 1, 1)
+
+function GTA:Flash()
+    UIFrameFadeOut(flash, 0.6, 0.9, 0)
+    flash:Show()
+    C_Timer.After(0.65, function() flash:Hide() end)
+end
+
+-- Police lights pulsing in the screen corners.
+local lights = CreateFrame("Frame", nil, UIParent)
+lights:SetAllPoints(UIParent)
+lights:SetFrameStrata("BACKGROUND")
+lights:Hide()
+local red = lights:CreateTexture(nil, "ARTWORK")
+red:SetTexture(GTA:Tex("siren_red"))
+red:SetSize(900, 900)
+red:SetPoint("CENTER", lights, "TOPLEFT", 0, 0)
+red:SetBlendMode("ADD")
+local blue = lights:CreateTexture(nil, "ARTWORK")
+blue:SetTexture(GTA:Tex("siren_blue"))
+blue:SetSize(900, 900)
+blue:SetPoint("CENTER", lights, "TOPRIGHT", 0, 0)
+blue:SetBlendMode("ADD")
+lights:SetScript("OnUpdate", function(self, dt)
+    self.left = self.left - dt
+    local on = math.sin(GetTime() * 9) > 0
+    red:SetAlpha(on and 0.55 or 0.05)
+    blue:SetAlpha(on and 0.05 or 0.55)
+    if self.left <= 0 then self:Hide() end
+end)
+
+function GTA:PoliceLights(seconds)
+    lights.left = seconds or 4
+    lights:Show()
 end
 
 -- Comic burst stickers that pop up somewhere near the middle.

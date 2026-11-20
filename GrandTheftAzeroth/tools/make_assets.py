@@ -236,6 +236,21 @@ def textures():
         d.rectangle((x, y, x + random.randint(4, 10), y + random.randint(8, 16)), fill=random.choice(cols))
     save(img, "confetti")
 
+    # Bird splat.
+    img = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.ellipse((70, 70, 186, 186), fill=(245, 245, 235, 255))
+    for _ in range(14):
+        a = random.uniform(0, 2 * math.pi)
+        r = random.uniform(60, 115)
+        x, y = 128 + r * math.cos(a), 128 + r * math.sin(a)
+        s = random.uniform(6, 20)
+        d.line((128, 128, x, y), fill=(245, 245, 235, 255), width=int(s))
+        d.ellipse((x - s, y - s, x + s, y + s), fill=(245, 245, 235, 255))
+    d.ellipse((105, 100, 150, 140), fill=(120, 110, 70, 255))
+    img = img.filter(ImageFilter.GaussianBlur(1.2))
+    save(img, "splat")
+
     # Speedometer.
     img = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
@@ -384,6 +399,20 @@ def sounds():
     rpm = 40 + 120 * (1 - np.exp(-x * 2))
     vroom = np.tanh(tone(rpm, 1.6, "saw", 0.05, 0.4) * 3 + tone(rpm * 2, 1.6, "square", 0.05, 0.4))
     write(vroom, "vroom")
+
+    # Car horn (two-tone honk-honk).
+    h = tone(415, 0.22, "square", 0.005, 0.03) + tone(523, 0.22, "square", 0.005, 0.03)
+    write(np.tanh(mix((0, h), (0.3, h)) * 1.5), "honk")
+
+    # Camera shutter: two sharp clicks.
+    write(mix((0, noise(0.03, 150)), (0.07, noise(0.05, 90) * 0.8)), "shutter")
+
+    # Slide whistle up and down.
+    x = t(1.0)
+    write(tone(600 + 900 * np.sin(np.pi * x), 1.0, "sine", 0.02, 0.1) * 0.7, "slide_whistle")
+
+    # Police radio chirp.
+    write(mix((0, tone(np.linspace(2000, 1200, int(SR * 0.08)), 0.08, "square", 0.001, 0.02) * 0.4), (0.1, noise(0.25, 6) * 0.3)), "police_chirp")
 
     # Level up fanfare.
     write(reverb(mix(*[(i * 0.12, tone(f, 0.22, "brass", 0.01, 0.1)) for i, f in enumerate([392, 523, 659, 784])], (0.5, chord([392, 523, 659, 784, 1047], 1.4, "brass", 1.0))), 0.5), "level_up")

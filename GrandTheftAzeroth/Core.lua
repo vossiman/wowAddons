@@ -17,6 +17,10 @@ GTA.GAGS = {
     { key = "radio", label = "Radio", desc = "Made-up radio stations while mounted (toggle with /gta radio)." },
     { key = "mishaps", label = "Mishaps & social", desc = "Slaps, swimming, AFK, vendors, loot, duels, taxis and other reactions." },
     { key = "stunts", label = "Stunt jumps", desc = "Insane stunt bonus for jumping a lot." },
+    { key = "turf", label = "Turf & travel", desc = "Subzone tags, enemy turf, heist briefings, hearthstone rides, broken gear, full bags, night shift." },
+    { key = "contracts", label = "Contracts & rampages", desc = "Hit contracts from shady contacts and RAMPAGE streaks when you kill fast." },
+    { key = "cinema", label = "Cutscene bars", desc = "Movie letterbox bars for level-ups, heists, contracts and promotions." },
+    { key = "chaos", label = "Random chaos", desc = "Random nonsense every few minutes: news, cops, audits, speed cameras, birds." },
 }
 
 local DEFAULTS = {
@@ -25,6 +29,8 @@ local DEFAULTS = {
     gags = {},
     stats = { respect = 0, deaths = 0, rides = 0, missions = 0, maxWanted = 0, earned = 0, cheats = 0, stunts = 0, critters = 0 },
     hudPos = nil,
+    chaos = 2,
+    errors = {},
 }
 
 local function copyDefaults(src, dst)
@@ -45,11 +51,15 @@ end
 function GTA:Stat(key, delta)
     local s = self.db.stats
     s[key] = (s[key] or 0) + (delta or 1)
+    if self.CheckAchievements then self:CheckAchievements(key) end
     return s[key]
 end
 
 function GTA:Sound(name)
     if not (self.db and self.db.sound) then return end
+    self.soundLog = self.soundLog or {}
+    table.insert(self.soundLog, date("%H:%M:%S") .. "  " .. name .. "  <- " .. (debugstack(2, 1, 0):match("([%w_]+%.lua:%d+)") or "?"))
+    if #self.soundLog > 20 then table.remove(self.soundLog, 1) end
     local ok, handle = PlaySoundFile(self.PATH .. "sounds\\" .. name .. ".ogg", "Master")
     return ok and handle or nil
 end
@@ -71,6 +81,16 @@ function GTA:Print(msg)
     print("|cffff3030Grand Theft|r |cffffc428Azeroth|r: " .. msg)
 end
 
+function GTA:Error(where, err)
+    local line = date("%H:%M:%S") .. " " .. where .. ": " .. tostring(err)
+    if self.db then
+        self.db.errors = self.db.errors or {}
+        table.insert(self.db.errors, line)
+        while #self.db.errors > 30 do table.remove(self.db.errors, 1) end
+    end
+    if self.debug then self:Print("|cffff0000" .. line .. "|r") end
+end
+
 local events = CreateFrame("Frame")
 local handlers = {}
 
@@ -87,7 +107,7 @@ end
 events:SetScript("OnEvent", function(_, event, ...)
     for _, fn in ipairs(handlers[event]) do
         local ok, err = pcall(fn, ...)
-        if not ok and GTA.debug then GTA:Print("|cffff0000" .. event .. "|r " .. tostring(err)) end
+        if not ok then GTA:Error(event, err) end
     end
 end)
 
@@ -105,7 +125,7 @@ end)
 GTA:RegisterEvent("PLAYER_LOGIN", function()
     for _, fn in ipairs(GTA.loginHooks) do
         local ok, err = pcall(fn)
-        if not ok and GTA.debug then GTA:Print("login: " .. tostring(err)) end
+        if not ok then GTA:Error("login", err) end
     end
 end)
 
@@ -134,7 +154,7 @@ GTA:Command("mute", "toggle all addon sounds", function()
     GTA:Print("sounds " .. (GTA.db.sound and "on" or "off"))
 end)
 GTA:Command("debug", "toggle error output", function() GTA.debug = not GTA.debug GTA:Print("debug " .. tostring(GTA.debug)) end)
-GTA:Command("toggle", "toggle one gag: /gta toggle <" .. "death|missions|wanted|cash|rides|districts|phone|radio|mishaps|stunts>", function(key)
+GTA:Command("toggle", "toggle one gag: /gta toggle <" .. "death|missions|wanted|cash|rides|districts|phone|radio|mishaps|stunts|chaos|turf|contracts|cinema>", function(key)
     key = (key or ""):lower()
     for _, g in ipairs(GTA.GAGS) do
         if g.key == key then
@@ -145,4 +165,18 @@ GTA:Command("toggle", "toggle one gag: /gta toggle <" .. "death|missions|wanted|
         end
     end
     GTA:Print("unknown gag '" .. key .. "'")
+end)
+
+GTA:Command("errors", "show recent addon errors (send these to the dev)", function()
+    local e = GTA.db.errors or {}
+    if #e == 0 then return GTA:Print("no errors recorded. Suspiciously clean.") end
+    GTA:Print(#e .. " recent errors:")
+    for _, line in ipairs(e) do print("  " .. line) end
+end)
+GTA:Command("clearerrors", "forget recorded errors", function() wipe(GTA.db.errors) GTA:Print("errors cleared") end)
+
+GTA:Command("sounds", "what just made that noise? (last 10 sounds and where they came from)", function()
+    local log = GTA.soundLog or {}
+    GTA:Print("last sounds:")
+    for i = math.max(1, #log - 9), #log do print("  " .. log[i]) end
 end)

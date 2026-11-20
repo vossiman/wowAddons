@@ -1,0 +1,5 @@
+<Bindings>
+	<Binding name="GTA_PHONE" header="GRANDTHEFTAZEROTH" category="ADDONS">
+		GrandTheftAzeroth_TogglePhone()
+	</Binding>
+</Bindings>

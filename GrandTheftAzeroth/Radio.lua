@@ -86,6 +86,10 @@ local function startStation(i)
     end)
 end
 
+function GTA:RadioStation()
+    return station == 0 and "OFF" or STATIONS[station].name
+end
+
 function GTA:RadioNext()
     if not self:On("radio") then return end
     startStation((station + 1) % (#STATIONS + 1))
