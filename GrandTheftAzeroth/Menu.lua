@@ -94,7 +94,12 @@ local APPS = {
     { icon = "panel_dark", label = function() return "Messages" end, run = function() show("log", "MESSAGES") end },
     { icon = "confetti", label = function() return "Demo" end, run = function() phone:Hide() cmd("demo")() end },
     { icon = "burst_oof", label = function() return "Prank text" end, run = function() GTA:PhoneText() end },
-    { icon = "cash", label = function() return "Sound\n" .. (GTA.db.sound and "on" or "off") end, run = cmd("mute") },
+    { icon = "cash", label = function() return "Volume\n" .. GTA:VolumeLabel() end, run = function()
+        local steps, cur = GTA.VOLUME_STEPS, GTA:VolumeLabel()
+        for i, v in ipairs(steps) do
+            if v == cur then GTA:SetVolume(steps[i % #steps + 1]) break end
+        end
+    end },
     { icon = "speedo", label = function() return "Settings" end, run = function() phone:Hide() cmd("options")() end },
     { icon = "star_full", label = function() return "Addon\n" .. (GTA.db.enabled and "on" or "off") end, run = function()
         cmd(GTA.db.enabled and "off" or "on")()

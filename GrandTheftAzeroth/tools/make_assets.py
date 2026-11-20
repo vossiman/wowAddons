@@ -324,8 +324,10 @@ def mix(*parts):
     return out
 
 
+LEVELS = {"high": 1.0, "med": 0.355, "low": 0.16}  # 0 dB, -9 dB, -16 dB
+
+
 def write(sig, name):
-    SND.mkdir(parents=True, exist_ok=True)
     # Level by loudness (RMS), not peak, so short blips and long sirens sit at the same volume.
     rms = np.sqrt(np.mean(sig ** 2)) + 1e-9
     target = 0.045 if name.startswith("radio_") else 0.06
@@ -333,14 +335,17 @@ def write(sig, name):
     peak = np.max(np.abs(sig))
     if peak > 0.5:
         sig = sig * (0.5 / peak)
-    with tempfile.TemporaryDirectory() as tmp:
-        wav = Path(tmp) / "x.wav"
-        with wave.open(str(wav), "wb") as w:
-            w.setnchannels(1)
-            w.setsampwidth(2)
-            w.setframerate(SR)
-            w.writeframes((sig * 32767).astype(np.int16).tobytes())
-        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(wav), "-c:a", "libvorbis", "-q:a", "5", str(SND / f"{name}.ogg")], check=True)
+    for level, gain in LEVELS.items():
+        out = SND / level
+        out.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory() as tmp:
+            wav = Path(tmp) / "x.wav"
+            with wave.open(str(wav), "wb") as w:
+                w.setnchannels(1)
+                w.setsampwidth(2)
+                w.setframerate(SR)
+                w.writeframes((sig * gain * 32767).astype(np.int16).tobytes())
+            subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(wav), "-c:a", "libvorbis", "-q:a", "4", str(out / f"{name}.ogg")], check=True)
 
 
 def chord(freqs, dur, kind="brass", r=0.6):
@@ -475,4 +480,4 @@ if __name__ == "__main__":
     textures()
     sounds()
     radio()
-    print("textures:", len(list(TEX.glob("*.png"))), "sounds:", len(list(SND.glob("*.ogg"))))
+    print("textures:", len(list(TEX.glob("*.png"))), "sounds:", len(list(SND.glob("*/*.ogg"))))

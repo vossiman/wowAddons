@@ -30,6 +30,7 @@ local DEFAULTS = {
     stats = { respect = 0, deaths = 0, rides = 0, missions = 0, maxWanted = 0, earned = 0, cheats = 0, stunts = 0, critters = 0 },
     hudPos = nil,
     chaos = 2,
+    volume = "med",
     errors = {},
 }
 
@@ -60,7 +61,7 @@ function GTA:Sound(name, channel)
     self.soundLog = self.soundLog or {}
     table.insert(self.soundLog, date("%H:%M:%S") .. "  " .. name .. "  <- " .. (debugstack(2, 1, 0):match("([%w_]+%.lua:%d+)") or "?"))
     if #self.soundLog > 20 then table.remove(self.soundLog, 1) end
-    local ok, handle = PlaySoundFile(self.PATH .. "sounds\\" .. name .. ".ogg", channel or "SFX")
+    local ok, handle = PlaySoundFile(self.PATH .. "sounds\\" .. (self.db.volume or "med") .. "\\" .. name .. ".ogg", channel or "SFX")
     return ok and handle or nil
 end
 
@@ -149,9 +150,29 @@ end
 
 GTA:Command("on", "switch the whole addon on", function() GTA.db.enabled = true GTA:Print("on. Welcome back to the streets.") end)
 GTA:Command("off", "switch the whole addon off", function() GTA.db.enabled = false GTA:Print("off. Going straight. For now.") end)
+GTA.VOLUME_STEPS = { "off", "low", "med", "high" }
+function GTA:VolumeLabel()
+    return self.db.sound and self.db.volume or "off"
+end
+function GTA:SetVolume(v)
+    if v == "off" then
+        self.db.sound = false
+    else
+        self.db.sound = true
+        self.db.volume = v
+    end
+end
 GTA:Command("mute", "toggle all addon sounds", function()
     GTA.db.sound = not GTA.db.sound
     GTA:Print("sounds " .. (GTA.db.sound and "on" or "off"))
+end)
+GTA:Command("volume", "addon volume: off, low, med or high", function(arg)
+    arg = (arg or ""):lower()
+    if arg == "off" or arg == "low" or arg == "med" or arg == "high" then
+        GTA:SetVolume(arg)
+        GTA:Sound("text_ping")
+    end
+    GTA:Print("volume: " .. GTA:VolumeLabel() .. "  (/gta volume off|low|med|high)")
 end)
 GTA:Command("debug", "toggle error output", function() GTA.debug = not GTA.debug GTA:Print("debug " .. tostring(GTA.debug)) end)
 GTA:Command("toggle", "toggle one gag: /gta toggle <" .. "death|missions|wanted|cash|rides|districts|phone|radio|mishaps|stunts|chaos|turf|contracts|cinema>", function(key)
