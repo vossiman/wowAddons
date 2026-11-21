@@ -17,7 +17,7 @@ Everything now reacts to what you actually do. Only the breaking-news ticker sti
 - **Character**: lunch breaks, DUI and public intoxication, fully rested, new talent points and spells, fresh threads, repairs, hearthstone ready again, and a "Previously on Grand Theft Azeroth" recap after a break
 - **Phone texts** now arrive after deaths, missions, level-ups, rampages, cities, taxis, banks and wipes instead of on a timer
 - The old random events (patrols, audits, insults, celebrities, wrong-person arrests, tips, fake achievements) now each have a real trigger
-- Breaking news: 95 headlines across crime, markets, weather, traffic, sports, science, politics, celebrity, horoscopes, ads and corrections, many using your name, class, zone, recent kills and stats. No repeats until all have run
+- Breaking news: 88 satirical headlines (crime, city hall and war, markets, society, health, weather and traffic, the media, real estate, sports, horoscopes, ads, live reports), many using your name, class, zone, recent kills and stats. No repeats until all have run
 - Combat stickers sit in a ring around your character; WHIFF means you missed, TOO SLOW means they missed you
 
 ## 0.5.5-beta
