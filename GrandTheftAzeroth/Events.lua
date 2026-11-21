@@ -27,13 +27,15 @@ GTA:RegisterEvent("UNIT_COMBAT", function(unit, action, flag)
         elseif YOU_AVOIDED[action] and throttle("avoid", 5) then
             GTA:TextSticker(YOU_AVOIDED[action], "green", true, 0.45)
         elseif action == "MISS" and throttle("missedyou", 6) then
-            GTA:TextSticker("WHIFF", "white", true, 0.4)
+            GTA:TextSticker("TOO SLOW", "green", true, 0.4)
         end
     elseif unit == "target" then
         if action == "WOUND" and flag == "CRITICAL" and throttle("critdealt", 3) then
             GTA:TextSticker("CRIT!", "red", true, 0.5)
         elseif THEY_AVOIDED[action] and throttle("denied", 5) then
             GTA:TextSticker(THEY_AVOIDED[action], "white", true, 0.45)
+        elseif action == "MISS" and throttle("youmissed", 6) then
+            GTA:TextSticker("WHIFF", "white", true, 0.4)
         end
     end
 end)

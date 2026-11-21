@@ -280,7 +280,10 @@ function GTA:TextSticker(text, color, near, scale)
     s:SetScale(scale or 0.55)
     s:ClearAllPoints()
     if near then
-        s:SetPoint("CENTER", UIParent, "CENTER", math.random(-260, 260), math.random(-60, 200))
+        -- A ring around the character: close enough to notice, never on top of them.
+        local angle = math.rad(math.random(0, 359))
+        local r = math.random(330, 460)
+        s:SetPoint("CENTER", UIParent, "CENTER", math.cos(angle) * r * 1.4, 60 + math.sin(angle) * r * 0.75)
     else
         s:SetPoint("CENTER", UIParent, "CENTER", math.random(-500, 500), math.random(-250, 300))
     end
