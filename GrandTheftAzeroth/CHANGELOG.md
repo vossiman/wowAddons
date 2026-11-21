@@ -5,6 +5,7 @@
 - Much less noise: by default only deaths, missions, level-ups, rank-ups, heists, rampages and gang wars play a sound. No more pings and blips on every pop-up, star or coin
 - "All sounds" app in the phone (and a settings checkbox) brings every gag's sound back
 - Cheat codes and the demo still play their sounds, since you asked for them
+- Skill-up pop-up now names the skill and rank (it used to just say "Skill increased" for any skill)
 
 ## 0.5.3-beta (first public release)
 

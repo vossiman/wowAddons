@@ -232,8 +232,18 @@ end)
 GTA:RegisterEvent("GROUP_JOINED", function()
     if GTA:On("mishaps") and throttle("group", 60) then GTA:Toast("|cffffc428CREW ASSEMBLED|r\nNobody say 'heist' on comms.") end
 end)
-GTA:RegisterEvent("CHAT_MSG_SKILL", function()
-    if GTA:On("mishaps") and throttle("skill", 300) then GTA:Toast("Skill increased. Your cardio, however, did not.") end
+-- "Your skill in %s has increased to %d." -> pattern that captures the skill name and rank.
+local SKILL_PATTERN
+if SKILL_RANK_UP then
+    SKILL_PATTERN = "^" .. SKILL_RANK_UP:gsub("[%(%)%.%+%-%*%?%[%]%^%$]", "%%%0"):gsub("%%s", "(.-)", 1):gsub("%%d", "(%%d+)")
+end
+
+GTA:RegisterEvent("CHAT_MSG_SKILL", function(msg)
+    msg = Safe(msg)
+    if not msg or not SKILL_PATTERN or not GTA:On("mishaps") then return end
+    local skill, rank = msg:match(SKILL_PATTERN)
+    if not skill or not throttle("skill:" .. skill, 300) then return end
+    GTA:Toast("|cffffc428SKILL UP: " .. skill:upper() .. " " .. rank .. "|r\nYour cardio, however, did not.")
 end)
 GTA:RegisterEvent("CHAT_MSG_COMBAT_FACTION_CHANGE", function()
     if GTA:On("mishaps") and throttle("rep", 300) then GTA:Toast("Gang rep up. The streets are talking. Mostly about your outfit.") end
