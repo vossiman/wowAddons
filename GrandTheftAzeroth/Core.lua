@@ -20,7 +20,8 @@ GTA.GAGS = {
     { key = "turf", label = "Turf & travel", desc = "Subzone tags, enemy turf, heist briefings, hearthstone rides, broken gear, full bags, night shift." },
     { key = "contracts", label = "Contracts & rampages", desc = "Hit contracts from shady contacts and RAMPAGE streaks when you kill fast." },
     { key = "cinema", label = "Cutscene bars", desc = "Movie letterbox bars for level-ups, heists, contracts and promotions." },
-    { key = "chaos", label = "Random chaos", desc = "Random nonsense every few minutes: news, cops, audits, speed cameras, birds." },
+    { key = "combat", label = "Combat stickers", desc = "CRIT!, OOF, DENIED, WHIFF and friends when hits land, miss or get blocked." },
+    { key = "chaos", label = "Street life & news", desc = "Breaking news on a timer, plus speed cameras, tax audits, insults, patrols and birds caused by what you do." },
 }
 
 local DEFAULTS = {
@@ -190,7 +191,7 @@ GTA:Command("volume", "addon volume: off, low, med or high", function(arg)
     GTA:Print("volume: " .. GTA:VolumeLabel() .. "  (/gta volume off|low|med|high)")
 end)
 GTA:Command("debug", "toggle error output", function() GTA.debug = not GTA.debug GTA:Print("debug " .. tostring(GTA.debug)) end)
-GTA:Command("toggle", "toggle one gag: /gta toggle <" .. "death|missions|wanted|cash|rides|districts|phone|radio|mishaps|stunts|chaos|turf|contracts|cinema>", function(key)
+GTA:Command("toggle", "toggle one gag: /gta toggle <" .. "death|missions|wanted|cash|rides|districts|phone|radio|mishaps|stunts|chaos|turf|contracts|cinema|combat>", function(key)
     key = (key or ""):lower()
     for _, g in ipairs(GTA.GAGS) do
         if g.key == key then

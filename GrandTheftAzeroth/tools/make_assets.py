@@ -132,6 +132,10 @@ def textures():
     ]:
         save(overlay_text(burst(256, 14, fill), text, font(BANGERS, 70 if len(text) < 6 else 52), tcol), name)
 
+    # Blank bursts: the addon writes any text on top of these in-game.
+    for name, fill in [("blank_red", RED), ("blank_gold", GOLD), ("blank_cyan", CYAN), ("blank_pink", PINK), ("blank_green", GREEN), ("blank_white", WHITE)]:
+        save(burst(256, 14, fill), "burst_" + name)
+
     # Cheat activated stamp.
     img = Image.new("RGBA", (512, 256), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)

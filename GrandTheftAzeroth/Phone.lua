@@ -89,16 +89,30 @@ function GTA:PhoneText(from, msg)
     phone.timer = C_Timer.NewTimer(9, function() UIFrameFadeOut(phone, 0.5, 1, 0) C_Timer.After(0.6, function() phone:Hide() end) end)
 end
 
-local function schedule()
-    C_Timer.After(math.random(600, 1200), function()
-        if GTA:On("phone") and not UnitAffectingCombat("player") and not IsInInstance() then GTA:PhoneText() end
-        schedule()
-    end)
+-- Texts arrive because of something you did, never on a timer.
+local EVENT_TEXTS = {
+    death = { { "Mom", "I saw you die on the news. Again. Wear a jacket." }, { "Lawyer (Goblin)", "Say NOTHING to the spirit healer. Billing you anyway." } },
+    quest = { { "Quest Giver", "Thanks for that! I have more rats. I always have more rats." }, { "Big Hoggen", "Heard you did a job for the locals. Freelancing behind my back?" } },
+    levelup = { { "Mom", "Another level! So proud. Now get a real job." }, { "Cousin Grizzlik", "Level up! Let's celebrate. Bowling?" } },
+    rampage = { { "Big Hoggen", "Saw your work out there. Beautiful. Messy, but beautiful." }, { "Lawyer (Goblin)", "About that rampage. My fee just doubled." } },
+    city = { { "Ex (Night Elf)", "Heard you're in town. Don't call me." }, { "Unknown Number", "Welcome to the city! Your car's extended warranty has expired." } },
+    taxi = { { "Taxi Dispatch", "Gryphon #12 says you didn't tip. He knows where you live." }, { "Taxi Dispatch", "Your wind rider is on strike. Union stuff." } },
+    bank = { { "Bank of Azeroth", "Suspicious activity detected: you deposited 200 linen cloth. Explain." }, { "Bank of Azeroth", "Your account is overdrawn by 3 copper. Penalty: 4 copper." } },
+    broke = { { "Bank of Azeroth", "Card declined. Have you tried being rich?" } },
+    wipe = { { "Lawyer (Goblin)", "Whole crew down? I can get you a group discount on resurrections." } },
+}
+
+function GTA:EventText(key, chance)
+    local list = EVENT_TEXTS[key]
+    if not list or not self:On("phone") or math.random() > (chance or 1) then return end
+    local pick = self.Pick(list)
+    local tries = 0
+    local function send()
+        tries = tries + 1
+        if UnitAffectingCombat("player") and tries < 30 then return C_Timer.After(2, send) end
+        GTA:PhoneText(pick[1], pick[2])
+    end
+    C_Timer.After(3, send)
 end
 
-GTA:OnLogin(function() C_Timer.After(math.random(90, 180), function()
-    if GTA:On("phone") and not UnitAffectingCombat("player") then GTA:PhoneText() end
-    schedule()
-end) end)
-
-GTA:Command("phone", "get a text right now", function() GTA:PhoneText() end)
+GTA:Command("text", "get a random text right now", function() GTA:PhoneText() end)

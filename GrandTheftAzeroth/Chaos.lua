@@ -51,7 +51,6 @@ local ACHIEVEMENTS = {
     "Existed in a zone. Legend.",
 }
 
-local PEDESTRIANS = { "Some Guy", "Angry Peasant", "A Gnome (Probably)", "Lady With Groceries", "Retired Footman" }
 local INSULTS = {
     "Hey! I'm walkin' here!",
     "Watch it, buddy!",
@@ -60,127 +59,153 @@ local INSULTS = {
     "Is that a mount or a cry for help?",
 }
 
-local function moving()
+local function speedNow()
     local ok, speed = pcall(GetUnitSpeed, "player")
-    speed = ok and Safe(speed) or 0
-    return speed > 0, speed
+    return ok and Safe(speed) or 0
 end
 
--- Each event: fn, and optional ok() condition. Weights decide how often it shows up.
-local EVENTS = {
-    { w = 4, fn = function() GTA:News(Pick(HEADLINES)) end },
-    { w = 3, fn = function()
-        GTA:PoliceLights(4)
-        GTA:Sound("police_chirp")
-        if GTA:Wanted() > 0 then
-            GTA:AddWanted(1, "A patrol spotted you. Running was a bad idea.")
-        else
-            GTA:Toast("A patrol drives by. Act natural. NATURAL.")
-        end
-    end },
-    { w = 3, fn = function()
-        GTA:Sound("slide_whistle")
-        C_Timer.After(0.9, function()
-            GTA:Sticker("splat", "sploosh", 0.9)
-            GTA:Toast("A gryphon has relieved itself on you. |cffff4040-1 DIGNITY|r")
-        end)
-    end },
-    { w = 2, fn = function()
-        GTA:SetCash(0, true)
-        GTA:Sound("record_scratch")
-        GTA:Toast("|cffff4040TAX AUDIT|r\nThe Stormwind Revenue Service is reviewing your 'loot'.")
-        C_Timer.After(5, function()
-            GTA:SetCash(GetMoney(), true)
-            GTA:Toast("Audit complete. You're clean. For now.", "cha_ching")
-        end)
-    end },
-    { w = 3, ok = function() return moving() end, fn = function()
-        local _, speed = moving()
-        local mph = math.floor(speed * 10)
-        GTA:Sound("shutter")
+local lastFired = {}
+local function throttle(key, seconds)
+    local now = GetTime()
+    if lastFired[key] and now - lastFired[key] < seconds then return false end
+    lastFired[key] = now
+    return true
+end
+
+local function calm()
+    return GTA:On("chaos") and not UnitAffectingCombat("player") and not UnitIsDeadOrGhost("player")
+end
+
+---------------------------------------------------------------- street life, each one caused by something you did
+function GTA:Patrol()
+    self:PoliceLights(4)
+    if self:Wanted() > 0 then
+        self:AddWanted(1, "A patrol spotted you. Running was a bad idea.")
+    else
+        self:Toast("A patrol drives by. Act natural. NATURAL.")
+    end
+end
+
+function GTA:Bird()
+    self:Sticker("splat", nil, 0.9)
+    self:Toast("A gryphon has relieved itself on you. |cffff4040-1 DIGNITY|r")
+end
+
+function GTA:Sponsor()
+    self:Banner({ text = "THIS ZONE IS SPONSORED BY", color = { 1, 1, 1 }, sub = Pick(SPONSORS), hold = 3.5 })
+end
+
+function GTA:FakeAchievement(text)
+    self:Toast("|cffffc428ACHIEVEMENT UNLOCKED|r\n" .. (text or Pick(ACHIEVEMENTS)))
+end
+
+-- Speed camera: 8 seconds flat out on a mount.
+local fastFor = 0
+C_Timer.NewTicker(1, function()
+    if not IsMounted() or UnitOnTaxi("player") then fastFor = 0 return end
+    local mph = speedNow() * 10
+    fastFor = mph >= 110 and fastFor + 1 or 0
+    if fastFor >= 8 and calm() and throttle("camera", 600) then
+        fastFor = 0
         GTA:Flash()
         GTA:Toast(string.format("|cffffc428SPEED CAMERA|r\n%d murlocs/h in a 30 zone. Fine: %s.", mph, GTA.Commas(mph * 7)))
-    end },
-    { w = 3, fn = function()
-        GTA:Sound("honk")
-        local who = Safe(UnitExists("target") and not UnitIsPlayer("target") and UnitName("target")) or Pick(PEDESTRIANS)
-        GTA:Toast("|cffffc428" .. tostring(who) .. ":|r " .. Pick(INSULTS))
-    end },
-    { w = 2, fn = function()
-        GTA:Banner({ text = "THIS ZONE IS SPONSORED BY", color = { 1, 1, 1 }, sub = Pick(SPONSORS), hold = 3.5, sound = "text_ping" })
-    end },
-    { w = 2, fn = function() GTA:Toast(Pick(TIPS)) end },
-    { w = 2, ok = function() return GTA:On("wanted") end, fn = function()
-        local before = GTA:Wanted()
-        GTA:SetWanted(math.min(5, before + 2), "Matches description of suspect: 'has arms, legs, a face'.")
-        C_Timer.After(5, function()
-            GTA:SetWanted(before)
-            GTA:Toast("Oh. Wrong person. Carry on, citizen.", "star_down")
-        end)
-    end },
-    { w = 2, fn = function() GTA:Toast("|cffffc428ACHIEVEMENT UNLOCKED|r\n" .. Pick(ACHIEVEMENTS), "cheat_activated") end },
-    { w = 2, ok = function() return GTA:On("phone") end, fn = function() GTA:PhoneText() end },
-    { w = 1, fn = function()
-        GTA:Sound("airhorn")
-        for i = 1, 4 do C_Timer.After(i * 0.3, function() GTA:Sticker(Pick({ "burst_kapow", "burst_bonk", "burst_oof", "burst_crit" })) end) end
-        GTA:Confetti(3)
-    end },
-    { w = 1, fn = function()
-        GTA:Sound("record_scratch")
-        GTA:Banner({ text = "WHAT A LEGEND", color = { 1, 0.77, 0.16 }, sub = "Nobody knows why. Least of all you." })
-    end },
-    { w = 1, fn = function()
-        GTA:Toast("Celebrity sighting! A level 60 in full epics just walked past. You pretend not to care.")
-    end },
-}
+    end
+end)
 
-local function fire(force)
-    if not GTA:On("chaos") and not force then return end
-    if not force and (UnitAffectingCombat("player") or UnitIsDeadOrGhost("player")) then return end
-    local pool, total = {}, 0
-    for _, e in ipairs(EVENTS) do
-        if not e.ok or e.ok() then
-            table.insert(pool, e)
-            total = total + e.w
+-- Targeting people out of combat.
+GTA:RegisterEvent("PLAYER_TARGET_CHANGED", function()
+    if not calm() or not UnitExists("target") then return end
+    local isPlayer = Safe(UnitIsPlayer("target"))
+    local name = Safe(UnitName("target"))
+    if isPlayer == true then
+        local theirs, mine = Safe(UnitLevel("target")) or 0, UnitLevel("player") or 0
+        if theirs >= mine + 15 and throttle("celebrity", 600) then
+            GTA:Toast("Celebrity sighting! " .. (name or "Someone") .. " (level " .. theirs .. ") is right there. You pretend not to care.")
         end
+        return
     end
-    local r = math.random() * total
-    for _, e in ipairs(pool) do
-        r = r - e.w
-        if r <= 0 then return e.fn() end
+    if not name then return end
+    if name:find("Guard") and GTA:Wanted() == 0 and GTA:On("wanted") and math.random() < 0.25 and throttle("wrongguy", 600) then
+        GTA:SetWanted(2, "Matches description of suspect: 'has arms, legs, a face'.")
+        C_Timer.After(5, function()
+            GTA:SetWanted(0)
+            GTA:Toast("Oh. Wrong person. Carry on, citizen.")
+        end)
+    elseif Safe(UnitIsFriend("player", "target")) and Safe(UnitCreatureType("target")) == "Humanoid"
+        and math.random() < 0.12 and throttle("insult", 180) then
+        GTA:Toast("|cffffc428" .. name .. ":|r " .. Pick(INSULTS))
     end
+end)
+
+-- Big paydays get audited.
+local lastMoney
+GTA:OnLogin(function() lastMoney = GetMoney() end)
+GTA:RegisterEvent("PLAYER_MONEY", function()
+    local now = GetMoney()
+    local gain = now - (lastMoney or now)
+    lastMoney = now
+    if gain >= 10000 and calm() and math.random() < 0.3 and throttle("audit", 1800) then
+        C_Timer.After(2, function()
+            GTA:SetCash(0, true)
+            GTA:Toast("|cffff4040TAX AUDIT|r\nThat payday got noticed. The Stormwind Revenue Service is reviewing your 'loot'.")
+            C_Timer.After(5, function()
+                GTA:SetCash(GetMoney(), true)
+                GTA:Toast("Audit complete. You're clean. For now.")
+            end)
+        end)
+    end
+end)
+
+-- Loading screens get a tip.
+GTA:RegisterEvent("PLAYER_ENTERING_WORLD", function(isLogin, isReload)
+    if isLogin or isReload then return end
+    C_Timer.After(4, function() if calm() and math.random() < 0.5 then GTA:Toast(Pick(TIPS)) end end)
+end)
+
+-- Opening the map.
+if WorldMapFrame then
+    WorldMapFrame:HookScript("OnShow", function()
+        if calm() and math.random() < 0.15 and throttle("map", 1800) then GTA:FakeAchievement("Looked at the map. Did not read it.") end
+    end)
 end
 
-local RANGES = { { 300, 600 }, { 100, 240 }, { 35, 90 } }
+-- Three missions in five minutes.
+local turnins = {}
+GTA:RegisterEvent("QUEST_TURNED_IN", function()
+    local now = GetTime()
+    table.insert(turnins, now)
+    while turnins[1] and now - turnins[1] > 300 do table.remove(turnins, 1) end
+    if #turnins >= 3 and throttle("legend", 600) then
+        wipe(turnins)
+        C_Timer.After(4, function()
+            GTA:Banner({ text = "WHAT A LEGEND", color = { 1, 0.77, 0.16 }, sub = "Three missions in five minutes. Nobody asked you to." })
+        end)
+    end
+end)
+
+---------------------------------------------------------------- breaking news: the one thing still on a timer
+local RANGES = { { 600, 1200 }, { 240, 480 }, { 90, 180 } }
 
 local function schedule()
-    local level = GTA.db.chaos or 2
-    local r = RANGES[level] or RANGES[2]
+    local r = RANGES[GTA.db.chaos or 2] or RANGES[2]
     local wait = math.random(r[1], r[2])
     if GTA.IsNight and GTA:IsNight() then wait = wait * 0.6 end
     C_Timer.After(wait, function()
-        if (GTA.db.chaos or 2) > 0 then fire() end
+        if (GTA.db.chaos or 2) > 0 and calm() then GTA:News(Pick(HEADLINES)) end
         schedule()
     end)
 end
 GTA:OnLogin(schedule)
 
--- Small in-combat chaos: comic stickers only, never text.
-GTA:RegisterEvent("PLAYER_REGEN_DISABLED", function()
-    if GTA:On("chaos") and (GTA.db.chaos or 2) >= 2 and math.random() < 0.2 then
-        C_Timer.After(math.random() * 3, function()
-            GTA:Sticker(Pick({ "burst_kapow", "burst_bonk", "burst_oof", "burst_crit" }), Pick({ "bonk", "boing", "honk" }))
-        end)
-    end
-end)
+function GTA:Headline(text) self:News(text or Pick(HEADLINES)) end
 
-GTA:Command("random", "make something random happen right now", function() fire(true) end)
-GTA:Command("chaos", "chaos level 0-3 (0 = off, 3 = unhinged)", function(arg)
+GTA:Command("random", "breaking news right now", function() GTA:News(Pick(HEADLINES)) end)
+GTA:Command("chaos", "how often breaking news runs, 0-3 (0 = never)", function(arg)
     local n = tonumber(arg)
     if n and n >= 0 and n <= 3 then
         GTA.db.chaos = math.floor(n)
-        GTA:Print("chaos level " .. GTA.db.chaos .. ({ [0] = " (boring)", " (chill)", " (default)", " (unhinged)" })[GTA.db.chaos])
+        GTA:Print("news level " .. GTA.db.chaos .. ({ [0] = " (no news)", " (rare)", " (default)", " (24-hour news)" })[GTA.db.chaos])
     else
-        GTA:Print("chaos level is " .. (GTA.db.chaos or 2) .. ". Use /gta chaos 0-3.")
+        GTA:Print("news level is " .. (GTA.db.chaos or 2) .. ". Use /gta chaos 0-3.")
     end
 end)

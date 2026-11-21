@@ -57,7 +57,7 @@ function GTA:WantedTick(dt)
         for i = 1, level do stars[i]:SetAlpha(1) end
     end
     if not UnitAffectingCombat("player") then
-        heat = heat - dt
+        heat = heat - dt * (self.calmFactor or 1)
         if heat <= 0 then self:SetWanted(level - 1) end
     end
 end

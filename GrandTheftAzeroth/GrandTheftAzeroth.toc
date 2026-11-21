@@ -2,7 +2,7 @@
 ## Title: |cffff3030Grand Theft|r |cffffc428Azeroth|r
 ## Notes: A comedic crime-game parody for WoW: Forever. Wanted stars, cash counter, mission banners, a fake phone, a radio and other nonsense. /gta for commands.
 ## Author: vossi
-## Version: 0.5.5
+## Version: 0.6.0
 ## AddonCompartmentFunc: GrandTheftAzeroth_TogglePhone
 ## IconTexture: Interface\AddOns\GrandTheftAzeroth\media\textures\respect.png
 ## SavedVariables: GrandTheftAzerothDB
@@ -23,6 +23,7 @@ Chaos.lua
 Turf.lua
 Contracts.lua
 Extras.lua
+Events.lua
 Cheats.lua
 Options.lua
 Menu.lua

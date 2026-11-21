@@ -41,20 +41,79 @@ local SUBZONE_GENERIC = {
     "Prime real estate (if you like wolves).",
 }
 
-local tag = CreateFrame("Frame", nil, GTA.hud)
-tag:SetSize(320, 44)
-tag:SetPoint("TOPRIGHT", GTA.hud, "BOTTOMRIGHT", 0, -14)
-tag:Hide()
-tag.name = tag:CreateFontString(nil, "OVERLAY")
-tag.name:SetFont(GTA.FONT_TITLE, 26, "OUTLINE")
-tag.name:SetPoint("TOPRIGHT")
-tag.name:SetTextColor(1, 1, 1)
-tag.joke = tag:CreateFontString(nil, "OVERLAY")
-tag.joke:SetFont(GTA.FONT_HAND, 14, "OUTLINE")
-tag.joke:SetPoint("TOPRIGHT", tag.name, "BOTTOMRIGHT", 0, -2)
-tag.joke:SetTextColor(1, 0.77, 0.16)
+-- Subzone card, bottom right above the district card.
+local card = CreateFrame("Frame", nil, UIParent)
+card:SetSize(640, 110)
+card:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -24, 290)
+card:SetScale(0.6)
+card:SetFrameStrata("HIGH")
+card:Hide()
+local cardBg = card:CreateTexture(nil, "BACKGROUND")
+cardBg:SetAllPoints()
+cardBg:SetTexture(GTA:Tex("card_ride"))
+card.name = card:CreateFontString(nil, "OVERLAY")
+card.name:SetFont(GTA.FONT_TITLE, 54, "OUTLINE")
+card.name:SetPoint("TOPRIGHT", -40, -10)
+card.name:SetTextColor(1, 1, 1)
+card.joke = card:CreateFontString(nil, "OVERLAY")
+card.joke:SetFont(GTA.FONT_HAND, 24, "OUTLINE")
+card.joke:SetPoint("TOPRIGHT", card.name, "BOTTOMRIGHT", 0, -2)
+card.joke:SetTextColor(1, 0.77, 0.16)
+GTA:Movable(card, "subzone", function(f) f:Hide() end, function()
+    card.name:SetText("Subzone Card")
+    card.joke:SetText("Shift-drag me. Click to close.")
+    GTA.TempShow(card)
+end)
 
-local lastSub
+-- Things that happen because of where you just walked in.
+local function casing(sub)
+    GTA:Toast("Casing the joint... don't hang around too long.")
+    C_Timer.After(20, function()
+        if (Safe(GetSubZoneText()) or "") == sub and not UnitAffectingCombat("player") then
+            GTA:AddWanted(1, "Loitering outside " .. sub .. ". Security has your description.")
+        end
+    end)
+end
+
+local HAPPENINGS = {
+    { "Inn", 0.6, function()
+        if GTA:Wanted() > 0 then
+            GTA:SetWanted(GTA:Wanted() - 1)
+            GTA:Toast("|cff5fe05fSAFEHOUSE|r\nThe innkeeper hides you in the back. Heat -1 star.")
+        end
+    end },
+    { "Mine", 0.4, function() GTA:Toast("Labour dispute: the kobolds are unionising. Their only demand is candles.") end },
+    { "Farm", 0.4, function()
+        GTA:TextSticker("TRESPASSER", "red", true, 0.5)
+        GTA:Toast("|cffffc428Farmer:|r GET OFF MY LAND!")
+    end },
+    { "Graveyard", 0.5, function() GTA:Toast("Spirit healer: 'Your regular table is ready.'") end },
+    { "Cemetery", 0.5, function() GTA:Toast("Spirit healer: 'Your regular table is ready.'") end },
+    { "Bank", 0.7, casing },
+    { "Dock", 0.4, casing },
+    { "Harbor", 0.4, casing },
+    { "Barracks", 0.5, function() if GTA:Wanted() > 0 then GTA:Patrol() else GTA:Toast("Cop HQ. Walk casually. CASUALLY.") end end },
+    { "Cathedral", 0.5, function()
+        if GTA:Wanted() > 0 then
+            GTA:SetWanted(0)
+            GTA:Toast("|cff5fe05fCONFESSION BOOTH|r\nAll sins forgiven. Heat cleared. Donations welcome.")
+        end
+    end },
+    { "Abbey", 0.4, function() GTA:Toast("Monks. Suspiciously calm monks. What are they hiding?") end },
+}
+
+local NEIGHBOURHOOD = {
+    function() GTA:Toast("|cffffc428Street vendor:|r Hot dogs! Well, hot boar. Close enough.") end,
+    function()
+        GTA:TextSticker("MUGGED?", "cyan", true, 0.5)
+        GTA:Toast("A mugger tried you. He saw your gear and apologised.")
+    end,
+    function() GTA:Toast("Fresh graffiti on the wall: '" .. (UnitName("player") or "YOU") .. " WAS HERE'. Wasn't you. Probably.") end,
+    function() GTA:Sponsor() end,
+}
+
+local lastSub, lastHappening = nil, 0
+local happened = {}
 local function showSubzone()
     if not GTA:On("turf") then return end
     local sub = Safe(GetSubZoneText()) or ""
@@ -64,14 +123,83 @@ local function showSubzone()
     for _, j in ipairs(SUBZONE_JOKES) do
         if sub:find(j[1], 1, true) then joke = j[2] break end
     end
-    tag.name:SetText(sub)
-    tag.joke:SetText(joke or Pick(SUBZONE_GENERIC))
-    tag:Show()
-    UIFrameFadeIn(tag, 0.3, 0, 1)
-    if tag.timer then tag.timer:Cancel() end
-    tag.timer = C_Timer.NewTimer(6, function() UIFrameFadeOut(tag, 0.8, 1, 0) C_Timer.After(0.9, function() tag:Hide() end) end)
+    card.name:SetText(sub)
+    card.joke:SetText(joke or Pick(SUBZONE_GENERIC))
+    card:Show()
+    UIFrameFadeIn(card, 0.3, 0, 1)
+    if card.timer then card.timer:Cancel() end
+    card.timer = C_Timer.NewTimer(5, function() UIFrameFadeOut(card, 0.8, 1, 0) C_Timer.After(0.9, function() card:Hide() end) end)
+
+    local now = GetTime()
+    if UnitAffectingCombat("player") or now - lastHappening < 45 or (happened[sub] and now - happened[sub] < 600) then return end
+    if GTA:Wanted() > 0 and math.random() < 0.3 then
+        lastHappening, happened[sub] = now, now
+        return C_Timer.After(2, function() GTA:Patrol() end)
+    end
+    for _, h in ipairs(HAPPENINGS) do
+        if sub:find(h[1], 1, true) then
+            if math.random() < h[2] then
+                lastHappening, happened[sub] = now, now
+                C_Timer.After(2, function() h[3](sub) end)
+            end
+            return
+        end
+    end
+    if math.random() < 0.12 then
+        lastHappening, happened[sub] = now, now
+        C_Timer.After(2, Pick(NEIGHBOURHOOD))
+    end
 end
 GTA:RegisterEvent("ZONE_CHANGED", showSubzone)
+
+---------------------------------------------------------------- capitals, flight paths, outgrown zones
+local CAPITALS = {
+    ["Stormwind City"] = "Alliance", ["Ironforge"] = "Alliance", ["Darnassus"] = "Alliance",
+    ["Orgrimmar"] = "Horde", ["Thunder Bluff"] = "Horde", ["Undercity"] = "Horde",
+}
+local wasCapital
+GTA:RegisterEvent("ZONE_CHANGED_NEW_AREA", function()
+    C_Timer.After(2.5, function()
+        local zone = Safe(GetZoneText()) or ""
+        local owner = CAPITALS[zone]
+        GTA.calmFactor = 1
+        if owner then
+            local mine = UnitFactionGroup("player")
+            if owner == mine then
+                GTA.calmFactor = 2
+                if GTA:On("turf") and wasCapital ~= zone then
+                    GTA:Banner({ text = "DOWNTOWN", color = { 1, 1, 1 }, sub = zone:upper() .. "   Big city. Cops are busy. Heat fades faster.", hold = 2.5 })
+                    GTA:EventText("city", 0.3)
+                end
+            else
+                GTA.calmFactor = 0.5
+                if GTA:On("turf") and wasCapital ~= zone then
+                    GTA:Banner({ text = "ENEMY DOWNTOWN", color = { 1, 0.25, 0.25 }, sub = zone:upper() .. "   You are very much not from around here.", hold = 2.5 })
+                    GTA:AddWanted(2, "Strolling through enemy downtown")
+                end
+            end
+        end
+        wasCapital = owner and zone or nil
+
+        if GTA:On("turf") and C_Map and C_Map.GetBestMapForUnit and C_Map.GetMapLevels then
+            local ok, mapID = pcall(C_Map.GetBestMapForUnit, "player")
+            if ok and mapID then
+                local ok2, _, playerMax = pcall(C_Map.GetMapLevels, mapID)
+                local lvl = UnitLevel("player") or 0
+                if ok2 and type(playerMax) == "number" and playerMax > 0 and lvl >= playerMax + 5 and throttle("outgrown:" .. zone, 3600) then
+                    GTA:Toast("|cffffc428" .. zone .. "|r\nThis neighbourhood is beneath you now. The locals can tell.")
+                end
+            end
+        end
+    end)
+end)
+
+GTA:RegisterEvent("CHAT_MSG_SYSTEM", function(msg)
+    msg = Safe(msg)
+    if msg and ERR_NEW_TAXIPATH and msg == ERR_NEW_TAXIPATH and GTA:On("turf") then
+        GTA:Banner({ text = "EXPANDING OPERATIONS", color = { 0.16, 0.86, 1 }, sub = "New flight path. The gryphons know your name now.", hold = 2 })
+    end
+end)
 
 ---------------------------------------------------------------- indoors
 local wasIndoors

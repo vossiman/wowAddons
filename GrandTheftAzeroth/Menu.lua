@@ -79,11 +79,11 @@ end
 local home = page("home")
 local APPS = {
     { icon = "radio_wheel", label = function() return "Radio\n" .. (GTA.RadioStation and GTA:RadioStation() or "") end, run = function() GTA:RadioNext() end },
-    { icon = "burst_kapow", label = function() return "Chaos!" end, run = cmd("random") },
-    { icon = "siren_red", label = function() return "Chaos lvl\n" .. (GTA.db.chaos or 2) .. "/3" end, run = function()
+    { icon = "burst_kapow", label = function() return "News" end, run = cmd("random") },
+    { icon = "siren_red", label = function() return "News lvl\n" .. (GTA.db.chaos or 2) .. "/3" end, run = function()
         cmd("chaos", tostring(((GTA.db.chaos or 2) + 1) % 4))()
     end },
-    { icon = "poster_wanted", label = function() return "Contract" end, run = cmd("contract") },
+    { icon = "poster_wanted", label = function() return "Switch\njob" end, run = cmd("contract") },
     { icon = "stamp_cheat", label = function() return "Cheats" end, run = function() show("cheats", "CHEATS") end },
     { icon = "respect", label = function() return "Record" end, run = function() show("record", "CRIMINAL RECORD") end },
     { icon = "panel_dark", label = function() return "Messages" end, run = function() show("log", "MESSAGES") end },
@@ -287,7 +287,7 @@ mm:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_LEFT")
     GameTooltip:AddLine("|cffff3030Grand Theft|r |cffffc428Azeroth|r")
     GameTooltip:AddLine("Left-click: open phone", 1, 1, 1)
-    GameTooltip:AddLine("Right-click: random chaos", 1, 1, 1)
+    GameTooltip:AddLine("Right-click: breaking news", 1, 1, 1)
     GameTooltip:AddLine("Drag: move this button", 0.7, 0.7, 0.7)
     GameTooltip:Show()
 end)

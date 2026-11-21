@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.6.0-beta
+
+Everything now reacts to what you actually do. Only the breaking-news ticker still runs on a timer.
+
+- **Contracts are your real quests**: kill and loot objectives from your quest log show in the tracker as hit contracts and pickup jobs, with +1 stickers, TARGET ELIMINATED / PACKAGE SECURED, and a cutscene when the job is done. Click the tracker (or the Switch job app) to change quest
+- **Wanted level from your kill rate**: 3 / 5 / 8 / 12 / 16 kills per minute give 1 to 5 stars; the rate shows next to the stars. No more random "crime" stars
+- **Subzones do things**: a subzone card, plus place-based happenings (inn hides you, banks get cased, farmers yell, confession booths clear your heat, muggers, vendors, graffiti)
+- **Capitals**: DOWNTOWN in your own capital (heat fades faster), ENEMY DOWNTOWN in theirs (+2 stars, heat fades slower)
+- **Combat stickers**: CRIT!, OOF, DENIED, NOPE, NOT TODAY, DODGED, PARRIED, BLOCKED, WHIFF
+- **Skill-ups** show as a sticker with the skill and rank, with a banner every 25 points
+- **Loot**: first green and blue of the day, JACKPOT on epics, SAFE CRACKED on chests and lockboxes, PRODUCT ACQUIRED when gathering, MANUFACTURED when crafting, FENCED when vendoring
+- **Movement**: falls (SPLAT), driving into lakes, the Coast Guard after a long swim, joyride bonus, speed cameras when riding flat out, loitering downtown, birds when you stand around outside
+- **Fights**: WALKED IT OFF at low health, UPSET OF THE YEAR on higher-level kills, long fights cool your heat, group wipes make the news, your pet getting whacked
+- **Social**: trades, inspects, guild and group invites, whispers on a burner phone, dance-offs and radio dedications
+- **Character**: lunch breaks, DUI and public intoxication, fully rested, new talent points and spells, fresh threads, repairs, hearthstone ready again, and a "Previously on Grand Theft Azeroth" recap after a break
+- **Phone texts** now arrive after deaths, missions, level-ups, rampages, cities, taxis, banks and wipes instead of on a timer
+- The old random events (patrols, audits, insults, celebrities, wrong-person arrests, tips, fake achievements) now each have a real trigger
+
 ## 0.5.5-beta
 
 - Much less noise: by default only deaths, missions, level-ups, rank-ups, heists, rampages and gang wars play a sound. No more pings and blips on every pop-up, star or coin

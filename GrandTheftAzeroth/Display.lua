@@ -240,12 +240,17 @@ local function getSticker()
     s.tex = s:CreateTexture(nil, "ARTWORK")
     s.tex:SetAllPoints()
     s.anim = fadeGroup(s, 0.7, 2.6)
+    s.text = s:CreateFontString(nil, "OVERLAY")
+    s.text:SetFont(GTA.FONT_TITLE, 52, "THICKOUTLINE")
+    s.text:SetPoint("CENTER")
+    s.text:SetWidth(200)
     table.insert(stickers, s)
     return s
 end
 
 function GTA:Sticker(name, sound, scale)
     local s = getSticker()
+    s.text:SetText("")
     s.tex:SetTexture(self:Tex(name))
     s.tex:SetRotation(math.rad(math.random(-25, 25)))
     s:SetScale(scale or (0.5 + math.random() * 0.3))
@@ -255,6 +260,33 @@ function GTA:Sticker(name, sound, scale)
     s:Show()
     s.anim:Play()
     if sound then self:Sound(sound) end
+end
+
+local STICKER_COLORS = {
+    red = { "blank_red", { 1, 1, 1 } }, gold = { "blank_gold", { 0.85, 0.1, 0.1 } },
+    cyan = { "blank_cyan", { 0.05, 0.05, 0.1 } }, pink = { "blank_pink", { 1, 1, 1 } },
+    green = { "blank_green", { 1, 1, 1 } }, white = { "blank_white", { 0.85, 0.1, 0.1 } },
+}
+
+-- A comic burst with any text on it. near=true keeps it close to the middle (for combat).
+function GTA:TextSticker(text, color, near, scale)
+    local c = STICKER_COLORS[color or "gold"] or STICKER_COLORS.gold
+    local s = getSticker()
+    s.tex:SetTexture(self:Tex("burst_" .. c[1]))
+    s.tex:SetRotation(math.rad(math.random(-20, 20)))
+    s.text:SetFont(GTA.FONT_TITLE, #text > 9 and 34 or (#text > 6 and 42 or 54), "THICKOUTLINE")
+    s.text:SetTextColor(unpack(c[2]))
+    s.text:SetText(text)
+    s:SetScale(scale or 0.55)
+    s:ClearAllPoints()
+    if near then
+        s:SetPoint("CENTER", UIParent, "CENTER", math.random(-260, 260), math.random(-60, 200))
+    else
+        s:SetPoint("CENTER", UIParent, "CENTER", math.random(-500, 500), math.random(-250, 300))
+    end
+    s:SetAlpha(0)
+    s:Show()
+    s.anim:Play()
 end
 
 -- Full-screen tint with a vignette.

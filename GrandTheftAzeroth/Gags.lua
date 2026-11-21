@@ -26,6 +26,7 @@ GTA:RegisterEvent("PLAYER_DEAD", function()
     GTA:Banner({ texture = tex, sound = "death_sting", hold = 4, priority = true,
         sub = string.format(Pick(DEATH_SUBS), GTA.Commas(math.random(200, 9999))) })
     GTA:SetWanted(0)
+    GTA:EventText("death", 0.5)
 end)
 
 local function revived()
@@ -55,6 +56,7 @@ GTA:RegisterEvent("QUEST_TURNED_IN", function(questID, xp)
     GTA:Banner({ texture = "mission_passed", sound = "mission_passed",
         sub = (questTitle(questID) or "Mission") .. "   |cffffc428+" .. respect .. " RESPECT|r" })
     GTA:Confetti(2.5)
+    GTA:EventText("quest", 0.2)
 end)
 
 GTA:RegisterEvent("QUEST_ACCEPTED", function(a, b)
@@ -75,6 +77,7 @@ GTA:RegisterEvent("PLAYER_LEVEL_UP", function(level)
     GTA:Cutscene("Level " .. tostring(level), "Same face. Bigger ego.", 3.5)
     GTA:Banner({ texture = "level_up", sound = "level_up", sub = "LEVEL " .. tostring(level) .. "   |cffffc428+10 RESPECT|r", priority = true })
     GTA:Confetti(4)
+    GTA:EventText("levelup", 0.6)
 end)
 
 GTA:RegisterEvent("BOSS_KILL", function(_, name)
@@ -123,18 +126,16 @@ GTA:RegisterEvent("AUCTION_HOUSE_SHOW", function()
     if GTA:On("mishaps") and throttle("ah", 120) then GTA:Toast("|cffffc428AUCTION HOUSE|r\nLaundering money... please hold.") end
 end)
 GTA:RegisterEvent("BANKFRAME_OPENED", function()
-    if GTA:On("mishaps") and throttle("bank", 120) then GTA:Toast("|cffffc428BANK JOB PLANNER|r\nVault: open. Guards: asleep. Your plan: deposit linen cloth.") end
+    if GTA:On("mishaps") and throttle("bank", 120) then
+        GTA:Toast("|cffffc428BANK JOB PLANNER|r\nVault: open. Guards: asleep. Your plan: deposit linen cloth.")
+        GTA:EventText("bank", 0.3)
+    end
 end)
 GTA:RegisterEvent("MAIL_SHOW", function()
     if GTA:On("mishaps") and throttle("mail", 120) then GTA:Toast("|cffffc428PACKAGE FOR YOU|r\nIt's ticking. Probably a clock. Probably.") end
 end)
 
 ---------------------------------------------------------------- crime
-local CRIMES = {
-    "Disturbing the peace", "Loitering with intent", "Jaywalking into a mob",
-    "Excessive spellcasting in a residential area", "Unlicensed fireball", "Assault with a deadly weapon (it's a stick)",
-    "Resisting a rest", "Grand theft of experience points",
-}
 
 local function targetKind()
     if not UnitExists("target") then return nil end
@@ -156,10 +157,7 @@ GTA:RegisterEvent("PLAYER_REGEN_DISABLED", function()
         GTA:AddWanted(1, "Animal cruelty. That " .. (name or "critter") .. " had a family.")
     elseif kind == "player" then
         GTA:AddWanted(1, "Street fight")
-    elseif math.random() < 0.15 then
-        GTA:AddWanted(1, Pick(CRIMES))
     end
-    if GTA:On("mishaps") and math.random() < 0.1 then GTA:Sticker(Pick({ "burst_kapow", "burst_bonk", "burst_crit" })) end
 end)
 
 GTA:RegisterEvent("PLAYER_TARGET_CHANGED", function()
@@ -242,8 +240,13 @@ GTA:RegisterEvent("CHAT_MSG_SKILL", function(msg)
     msg = Safe(msg)
     if not msg or not SKILL_PATTERN or not GTA:On("mishaps") then return end
     local skill, rank = msg:match(SKILL_PATTERN)
-    if not skill or not throttle("skill:" .. skill, 300) then return end
-    GTA:Toast("|cffffc428SKILL UP: " .. skill:upper() .. " " .. rank .. "|r\nYour cardio, however, did not.")
+    if not skill then return end
+    rank = tonumber(rank) or 0
+    if rank > 0 and rank % 25 == 0 then
+        GTA:Banner({ text = "SKILL MILESTONE", color = { 1, 0.77, 0.16 }, sub = skill:upper() .. " " .. rank .. "   Your cardio, however, did not improve.", hold = 2 })
+    elseif throttle("skill:" .. skill, 60) then
+        GTA:TextSticker(skill:upper() .. " " .. rank .. "!", "gold", true, 0.5)
+    end
 end)
 GTA:RegisterEvent("CHAT_MSG_COMBAT_FACTION_CHANGE", function()
     if GTA:On("mishaps") and throttle("rep", 300) then GTA:Toast("Gang rep up. The streets are talking. Mostly about your outfit.") end
@@ -253,15 +256,37 @@ GTA:RegisterEvent("MAP_EXPLORATION_UPDATED", function()
 end)
 
 local LOOT_PREFIX = LOOT_ITEM_SELF and LOOT_ITEM_SELF:match("^(.-)%%s")
+local CREATE_PREFIX = LOOT_ITEM_CREATED_SELF and LOOT_ITEM_CREATED_SELF:match("^(.-)%%s")
+
+-- First green / blue of the day gets its own moment; purple and orange always do.
+local function firstToday(quality)
+    local today = date("%Y-%m-%d")
+    GTA.db.lootDay = GTA.db.lootDay or {}
+    if GTA.db.lootDay[quality] == today then return false end
+    GTA.db.lootDay[quality] = today
+    return true
+end
+
 GTA:RegisterEvent("CHAT_MSG_LOOT", function(msg)
     msg = Safe(msg)
-    if not msg or not GTA:On("mishaps") or not LOOT_PREFIX or msg:sub(1, #LOOT_PREFIX) ~= LOOT_PREFIX then return end
+    if not msg or not GTA:On("mishaps") then return end
+    if CREATE_PREFIX and msg:sub(1, #CREATE_PREFIX) == CREATE_PREFIX then
+        if throttle("craft", 30) then GTA:TextSticker("MANUFACTURED", "pink", true, 0.5) end
+        return
+    end
+    if not LOOT_PREFIX or msg:sub(1, #LOOT_PREFIX) ~= LOOT_PREFIX then return end
     if msg:find("|cffa335ee") or msg:find("|cffff8000") then
-        GTA:Sticker("burst_loot", "airhorn", 0.9)
-        GTA:Banner({ text = "SCORE!", color = { 0.64, 0.21, 0.93 }, sound = "cha_ching", hold = 1.5 })
+        GTA:TextSticker("JACKPOT!!", "pink", true, 0.8)
+        GTA:Banner({ text = "SCORE!", color = { 0.64, 0.21, 0.93 }, hold = 1.5 })
         GTA:Confetti(3)
-    elseif msg:find("|cff0070dd") and throttle("rare", 20) then
-        GTA:Sticker("burst_loot", "cha_ching", 0.6)
+    elseif msg:find("|cff0070dd") then
+        if firstToday("blue") then
+            GTA:Banner({ text = "FIRST SCORE OF THE DAY", color = { 0.16, 0.5, 1 }, sub = "A blue! Mom will be so proud.", hold = 1.8 })
+        elseif throttle("rare", 20) then
+            GTA:Sticker("burst_loot", nil, 0.6)
+        end
+    elseif msg:find("|cff1eff00") and firstToday("green") then
+        GTA:TextSticker("NICE.", "green", true, 0.6)
     end
 end)
 
@@ -308,6 +333,7 @@ GTA:RegisterEvent("PLAYER_CONTROL_LOST", function()
     C_Timer.After(0.5, function()
         if GTA:On("rides") and UnitOnTaxi("player") then
             GTA:Banner({ text = "HIJACKED FLIGHT", color = { 0.16, 0.86, 1 }, sound = "vroom", sub = "The gryphon has not consented to this." })
+            GTA:EventText("taxi", 0.3)
         end
     end)
 end)
