@@ -17,6 +17,10 @@ dirty = subprocess.run(["git", "status", "--porcelain", "--", str(ADDON)], cwd=R
 if dirty and "--allow-dirty" not in sys.argv:
     sys.exit("uncommitted changes in the addon; commit first or pass --allow-dirty:\n" + dirty)
 
+check = subprocess.run(["node", str(REPO / "dev" / "check.js")], cwd=REPO)
+if check.returncode != 0:
+    sys.exit("dev/check.js failed; fix that first (run dev/setup.sh if the tools are missing)")
+
 files = subprocess.run(["git", "ls-files", "--", str(ADDON)], cwd=REPO, capture_output=True, text=True, check=True).stdout.split()
 if "--allow-dirty" in sys.argv:
     files = sorted({str(p.relative_to(REPO)) for p in ADDON.rglob("*") if p.is_file()})
