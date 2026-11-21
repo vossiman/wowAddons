@@ -1,6 +1,6 @@
 # Grand Theft Azeroth
 
-**Turn WoW: Forever into a crime-city comedy.** Wanted stars, a rolling cash counter, mission banners, stolen rides, a fake phone, a radio with made-up stations, hit contracts, rampages and a pile of random nonsense. Everything reacts to things you already do in game.
+**Turn WoW: Forever into a crime-city comedy.** Download: [CurseForge](https://www.curseforge.com/wow/addons/grand-theft-azeroth). Wanted stars, a rolling cash counter, mission banners, stolen rides, a fake phone, a radio with made-up stations, hit contracts, rampages and a pile of random nonsense. Everything reacts to things you already do in game.
 
 It's a parody and purely cosmetic: it never plays the game for you, never posts to public chat, and every gag can be switched off.
 

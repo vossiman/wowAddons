@@ -7,6 +7,8 @@
 ## IconTexture: Interface\AddOns\GrandTheftAzeroth\media\textures\respect.png
 ## SavedVariables: GrandTheftAzerothDB
 ## X-License: MIT
+## X-Curse-Project-ID: 1819492
+## X-Website: https://www.curseforge.com/wow/addons/grand-theft-azeroth
 
 Core.lua
 Display.lua
