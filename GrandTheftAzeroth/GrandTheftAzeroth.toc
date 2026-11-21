@@ -24,6 +24,7 @@ Turf.lua
 Contracts.lua
 Extras.lua
 Events.lua
+News.lua
 Cheats.lua
 Options.lua
 Menu.lua

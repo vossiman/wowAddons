@@ -1,29 +1,6 @@
 local _, GTA = ...
 local Pick, Safe = GTA.Pick, GTA.Safe
 
-local HEADLINES = {
-    "LOCAL PALADIN BUBBLES, HEARTHSTONES; POLICE BAFFLED",
-    "MURLOC ELECTED MAYOR OF WESTFALL. CAMPAIGN SLOGAN: 'MRGLGLGL'",
-    "STUDY: 9 OUT OF 10 KOBOLDS PREFER CANDLES. 10TH KOBOLD 'JUST WANTS TO TALK'",
-    "GOLDSHIRE INN FAILS HEALTH INSPECTION FOR 4,000TH YEAR RUNNING",
-    "MAN WHO SAID 'IT'S JUST ONE MORE QUEST' REPORTED MISSING SINCE TUESDAY",
-    "GNOMES DEMAND TALLER COUNTERS AT AUCTION HOUSE. AUCTIONEER: 'WHO SAID THAT?'",
-    "HUNTER'S PET CAUGHT DOING ALL THE WORK, AGAIN",
-    "ROGUE WANTED FOR QUESTIONING. NOBODY CAN SEE HIM",
-    "BOAR POPULATION STABLE DESPITE 2 MILLION ADVENTURERS NEEDING LIVERS",
-    "EXPERTS WARN: STANDING IN FIRE STILL BAD",
-    "WARLOCK SUMMONS GROUP, GROUP DOES NOT CLICK PORTAL. HUMANITY DOOMED",
-    "STORMWIND GUARDS CONFIRM: 'WE SAW NOTHING'. ALSO 'WE NEVER SEE ANYTHING'",
-    "LOCAL SHAMAN FORGETS TOTEM, WALKS BACK 400 YARDS IN SHAME",
-    "ECONOMISTS STUMPED AS LINEN CLOTH PRICES OUTPERFORM GOLD",
-    "BREAKING: SOMEONE IN TRADE CHAT WAS RIGHT ABOUT SOMETHING. INVESTIGATION ONGOING",
-    "DRUID TURNS INTO BEAR TO AVOID TAXES. IRS: 'WE'LL ALLOW IT'",
-    "MAILBOX DANCERS UNIONIZE. DEMANDS INCLUDE BIGGER MAILBOXES",
-    "FLIGHT MASTER DENIES ALL KNOWLEDGE OF 'THE SCENIC ROUTE'",
-    "QUESTIONABLE MAN IN DUSKWOOD STILL SELLING 'TOTALLY NORMAL' MEAT",
-    "WEATHER: CHANCE OF RAIN 40%. CHANCE OF GANK 90%",
-}
-
 local TIPS = {
     "TIP: Murlocs cannot be reasoned with. Believe us, we tried.",
     "TIP: Hold down the jump key to look cool. It does nothing else.",
@@ -191,15 +168,15 @@ local function schedule()
     local wait = math.random(r[1], r[2])
     if GTA.IsNight and GTA:IsNight() then wait = wait * 0.6 end
     C_Timer.After(wait, function()
-        if (GTA.db.chaos or 2) > 0 and calm() then GTA:News(Pick(HEADLINES)) end
+        if (GTA.db.chaos or 2) > 0 and calm() then GTA:BreakingNews() end
         schedule()
     end)
 end
 GTA:OnLogin(schedule)
 
-function GTA:Headline(text) self:News(text or Pick(HEADLINES)) end
+function GTA:Headline(text) if text then self:News(text) else self:BreakingNews() end end
 
-GTA:Command("random", "breaking news right now", function() GTA:News(Pick(HEADLINES)) end)
+GTA:Command("random", "breaking news right now", function() GTA:BreakingNews() end)
 GTA:Command("chaos", "how often breaking news runs, 0-3 (0 = never)", function(arg)
     local n = tonumber(arg)
     if n and n >= 0 and n <= 3 then
