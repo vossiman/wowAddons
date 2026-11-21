@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.4-beta
+## 0.5.5-beta
 
 - Much less noise: by default only deaths, missions, level-ups, rank-ups, heists, rampages and gang wars play a sound. No more pings and blips on every pop-up, star or coin
 - "All sounds" app in the phone (and a settings checkbox) brings every gag's sound back
