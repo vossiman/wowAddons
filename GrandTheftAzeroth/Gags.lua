@@ -79,7 +79,7 @@ end)
 
 GTA:RegisterEvent("BOSS_KILL", function(_, name)
     if not GTA:On("missions") then return end
-    GTA:Banner({ text = "HEIST COMPLETE", color = { 0.24, 0.85, 0.35 }, sound = "airhorn", sub = Safe(name) or "The crew splits the loot. Badly." })
+    GTA:Banner({ text = "HEIST COMPLETE", color = { 0.24, 0.85, 0.35 }, sound = "airhorn", force = true, sub = Safe(name) or "The crew splits the loot. Badly." })
     GTA:Cutscene("The Heist", "Starring: you. Special thanks: the healer.", 4)
     GTA:AddRespect(50)
     GTA:Confetti(4)
@@ -442,6 +442,7 @@ GTA:Command("stats", "your criminal record", function()
 end)
 
 GTA:Command("demo", "show off every gag once", function()
+    GTA:UserSounds(40)
     local steps = {
         function() GTA:Banner({ texture = "logo_wordmark", sound = "airhorn", sub = "a parody. please don't sue." }) end,
         function() GTA:AddWanted(1, "Being in a demo") end,

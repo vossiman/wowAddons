@@ -117,7 +117,8 @@ GTA:OnKill(function()
         wipe(recent)
         rbar.title:SetText("RAMPAGE! x" .. rampage.kills)
         rbar:Show()
-        GTA:Sticker("burst_kapow", "airhorn", 0.9)
+        GTA:Sticker("burst_kapow", nil, 0.9)
+        GTA:Sound("airhorn", nil, true)
     end
 end)
 

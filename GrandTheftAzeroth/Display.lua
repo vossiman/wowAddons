@@ -69,7 +69,7 @@ local function nextBanner()
     banner:SetAlpha(0)
     banner:Show()
     banner.anim:Play()
-    if b.sound then GTA:Sound(b.sound) end
+    if b.sound then GTA:Sound(b.sound, nil, b.force) end
 end
 banner:SetScript("OnHide", function() C_Timer.After(0.1, nextBanner) end)
 
@@ -110,7 +110,7 @@ local function nextToast()
     toast:SetAlpha(0)
     toast:Show()
     toast.anim:Play()
-    GTA:Sound(t.sound or "text_ping")
+    if t.sound then GTA:Sound(t.sound) end
 end
 toast:SetScript("OnHide", function() C_Timer.After(0.2, nextToast) end)
 
@@ -183,7 +183,6 @@ function GTA:News(text)
     ticker.text:SetText(text .. "        ///        " .. text)
     ticker.x = UIParent:GetWidth()
     ticker:Show()
-    self:Sound("text_ping")
 end
 
 -- Camera flash.

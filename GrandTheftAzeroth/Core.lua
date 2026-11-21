@@ -31,6 +31,7 @@ local DEFAULTS = {
     hudPos = nil,
     chaos = 2,
     volume = "med",
+    allSounds = false,
     errors = {},
 }
 
@@ -56,8 +57,18 @@ function GTA:Stat(key, delta)
     return s[key]
 end
 
-function GTA:Sound(name, channel)
+-- By default only big moments make noise; everything else is visual. "All sounds" turns every gag's sound back on.
+local SPECIAL = { death_sting = true, mission_passed = true, mission_failed = true, level_up = true }
+
+function GTA:UserSounds(seconds)
+    self.forceUntil = GetTime() + (seconds or 1)
+end
+
+function GTA:Sound(name, channel, force)
     if not (self.db and self.db.sound) then return end
+    local allowed = force or channel == "Music" or SPECIAL[name] or self.db.allSounds
+        or (self.forceUntil and GetTime() < self.forceUntil)
+    if not allowed then return end
     self.soundLog = self.soundLog or {}
     table.insert(self.soundLog, date("%H:%M:%S") .. "  " .. name .. "  <- " .. (debugstack(2, 1, 0):match("([%w_]+%.lua:%d+)") or "?"))
     if #self.soundLog > 20 then table.remove(self.soundLog, 1) end
@@ -166,11 +177,15 @@ GTA:Command("mute", "toggle all addon sounds", function()
     GTA.db.sound = not GTA.db.sound
     GTA:Print("sounds " .. (GTA.db.sound and "on" or "off"))
 end)
+GTA:Command("allsounds", "sounds for every gag (noisy) instead of only big moments", function()
+    GTA.db.allSounds = not GTA.db.allSounds
+    GTA:Print(GTA.db.allSounds and "every gag makes noise now. You asked for it." or "only big moments make noise.")
+end)
 GTA:Command("volume", "addon volume: off, low, med or high", function(arg)
     arg = (arg or ""):lower()
     if arg == "off" or arg == "low" or arg == "med" or arg == "high" then
         GTA:SetVolume(arg)
-        GTA:Sound("text_ping")
+        GTA:Sound("text_ping", nil, true)
     end
     GTA:Print("volume: " .. GTA:VolumeLabel() .. "  (/gta volume off|low|med|high)")
 end)

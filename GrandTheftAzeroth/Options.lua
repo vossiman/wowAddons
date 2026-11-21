@@ -12,6 +12,9 @@ function GTA:RegisterOptions()
 
     checkbox("GTA_ENABLED", "enabled", self.db, "Enable Grand Theft Azeroth", "Master switch for every gag.")
     checkbox("GTA_SOUND", "sound", self.db, "Play sounds", "All addon sounds, including the radio.")
+    local noisy = Settings.RegisterAddOnSetting(category, "GTA_ALL_SOUNDS", "allSounds", self.db, Settings.VarType.Boolean,
+        "Sounds for every gag (noisy)", Settings.Default.False)
+    Settings.CreateCheckbox(category, noisy, "Off: only deaths, missions, level-ups, heists, rampages and gang wars make noise. On: every pop-up, star and coin does too.")
     for _, g in ipairs(self.GAGS) do
         if self.db.gags[g.key] == nil then self.db.gags[g.key] = true end
         checkbox("GTA_GAG_" .. g.key:upper(), g.key, self.db.gags, g.label, g.desc)

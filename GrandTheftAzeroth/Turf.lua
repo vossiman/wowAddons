@@ -142,7 +142,7 @@ GTA:RegisterEvent("PLAYER_ENTERING_WORLD", function()
         if name == lastInstance then return end
         lastInstance = name
         if kind == "pvp" or kind == "arena" then
-            GTA:Banner({ text = "GANG WAR", color = { 1, 0.25, 0.25 }, sound = "siren", sub = name or "Turf war", priority = true })
+            GTA:Banner({ text = "GANG WAR", color = { 1, 0.25, 0.25 }, sound = "siren", force = true, sub = name or "Turf war", priority = true })
             GTA:PoliceLights(4)
         elseif kind == "party" or kind == "raid" then
             GTA:Banner({ text = "HEIST BRIEFING", color = { 0.16, 0.86, 1 }, sound = "police_chirp", sub = "Target: " .. (name or "somewhere with loot"), priority = true })

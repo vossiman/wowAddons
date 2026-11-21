@@ -94,7 +94,9 @@ local APPS = {
         for i, v in ipairs(steps) do
             if v == cur then GTA:SetVolume(steps[i % #steps + 1]) break end
         end
+        GTA:Sound("text_ping", nil, true)
     end },
+    { icon = "siren_blue", label = function() return "All sounds\n" .. (GTA.db.allSounds and "on" or "off") end, run = cmd("allsounds") },
     { icon = "speedo", label = function() return "Settings" end, run = function() phone:Hide() cmd("options")() end },
     { icon = "star_full", label = function() return "Addon\n" .. (GTA.db.enabled and "on" or "off") end, run = function()
         cmd(GTA.db.enabled and "off" or "on")()
@@ -126,7 +128,6 @@ for i, app in ipairs(APPS) do
     b.label:SetWidth(66)
     b:SetScript("OnClick", function()
         app.run()
-        GTA:Sound("text_ping")
         C_Timer.After(0.1, function() if current == "home" then home:refresh() end end)
     end)
     b.app = app
@@ -236,7 +237,6 @@ function GTA:TogglePhone()
     else
         show("home")
         phone:Show()
-        self:Sound("text_ping")
     end
 end
 GrandTheftAzeroth_TogglePhone = function() GTA:TogglePhone() end

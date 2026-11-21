@@ -64,6 +64,7 @@ table.sort(GTA.CHEAT_NAMES)
 function GTA:TryCheat(code)
     local fn = CHEATS[code:lower()]
     if not fn then return false end
+    GTA:UserSounds(7)
     fn()
     return true
 end
