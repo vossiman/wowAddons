@@ -14,15 +14,46 @@ local function calm()
 end
 
 ---------------------------------------------------------------- combat hits (UNIT_COMBAT; values may be hidden in combat, then nothing shows)
--- "you" if you're in this fight, "group" if the target is fighting someone in your group, nil otherwise.
+-- The unit frame showing a group member, across classic, modern and raid-style frames.
+local function frameUnit(f)
+    return f and (f.unit or (f.GetAttribute and f:GetAttribute("unit"))) or nil
+end
+
+function GTA:FrameForUnit(unit)
+    local candidates = {}
+    for i = 1, 4 do
+        table.insert(candidates, _G["PartyMemberFrame" .. i])
+        table.insert(candidates, PartyFrame and PartyFrame["MemberFrame" .. i])
+    end
+    for i = 1, 5 do table.insert(candidates, _G["CompactPartyFrameMember" .. i]) end
+    for i = 1, 40 do table.insert(candidates, _G["CompactRaidFrame" .. i]) end
+    for _, f in pairs(candidates) do
+        local u = frameUnit(f)
+        if u and f:IsVisible() and (u == unit or Safe(UnitIsUnit(u, unit)) == true) then return f end
+    end
+end
+
+local function groupUnitFor(token)
+    if IsInRaid() then
+        for i = 1, GetNumGroupMembers() do
+            if Safe(UnitIsUnit(token, "raid" .. i)) == true then return "raid" .. i end
+        end
+    else
+        for i = 1, 4 do
+            if Safe(UnitIsUnit(token, "party" .. i)) == true then return "party" .. i end
+        end
+    end
+end
+
+-- "you" if you're in this fight, "group" (plus which member) if the target is fighting your group, nil otherwise.
 function GTA:TargetFight()
     if not UnitAffectingCombat("player") or not UnitExists("target") then return nil end
     if Safe(UnitIsUnit("targettarget", "player")) == true or Safe(UnitIsUnit("targettarget", "pet")) == true then return "you" end
     local threat = Safe(UnitThreatSituation("player", "target"))
     if threat ~= nil then return "you" end
     if IsInGroup() and UnitExists("targettarget") then
-        local inGroup = Safe(UnitInParty("targettarget")) or Safe(UnitInRaid("targettarget"))
-        if inGroup then return "group" end
+        local member = groupUnitFor("targettarget")
+        if member then return "group", member end
     end
     return nil
 end
@@ -44,7 +75,7 @@ GTA:RegisterEvent("UNIT_COMBAT", function(unit, action, flag)
         end
     elseif unit == "target" then
         -- Hits on your target come from anyone. Only count them when it's your fight.
-        local who = GTA:TargetFight()
+        local who, member = GTA:TargetFight()
         if who == "you" then
             if action == "WOUND" and flag == "CRITICAL" and throttle("critdealt", 3) then
                 GTA:TextSticker("CRIT!", "red", true, 0.5)
@@ -54,7 +85,16 @@ GTA:RegisterEvent("UNIT_COMBAT", function(unit, action, flag)
                 GTA:TextSticker("WHIFF", "white", true, 0.4)
             end
         elseif who == "group" and action == "WOUND" and flag == "CRITICAL" and throttle("critgroup", 6) then
-            GTA:TextSticker("CREW CRIT", "white", "side", 0.32)
+            GTA:TextSticker("CREW CRIT", "white", GTA:FrameForUnit(member) or "side", 0.32)
+        end
+    elseif unit:find("^party%d") or unit:find("^raid%d") then
+        -- Hits on group members show small, on their own unit frame.
+        local frame = GTA:FrameForUnit(unit)
+        if not frame then return end
+        if action == "WOUND" and flag == "CRITICAL" and throttle("grouphit:" .. unit, 6) then
+            GTA:TextSticker("OOF", "cyan", frame, 0.28)
+        elseif YOU_AVOIDED[action] and throttle("groupavoid:" .. unit, 8) then
+            GTA:TextSticker(YOU_AVOIDED[action], "green", frame, 0.26)
         end
     end
 end)

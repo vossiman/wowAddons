@@ -288,7 +288,9 @@ function GTA:TextSticker(text, color, near, scale)
     s.text:SetText(text)
     s:SetScale(scale or 0.55)
     s:ClearAllPoints()
-    if near == "side" then
+    if type(near) == "table" and near.IsVisible and near:IsVisible() then
+        s:SetPoint("CENTER", near, "RIGHT", math.random(10, 60), math.random(-20, 20))
+    elseif near == "side" or type(near) == "table" then
         s:SetPoint("CENTER", UIParent, "CENTER", (math.random() < 0.5 and -1 or 1) * math.random(1150, 1350), math.random(-150, 250))
     elseif near then
         -- A ring around the character: close enough to notice, never on top of them.
