@@ -26,6 +26,7 @@ Extras.lua
 Events.lua
 News.lua
 Discovery.lua
+Sleep.lua
 Cheats.lua
 Options.lua
 Menu.lua
