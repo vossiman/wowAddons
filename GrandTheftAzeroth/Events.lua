@@ -256,7 +256,7 @@ GTA:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", function(unit, _, spellID)
 end)
 
 ---------------------------------------------------------------- movement: falls, swims, joyrides, loitering
-local fallStart, swimStart, mountStart, joyrideDone, idleStart = nil, nil, nil, false, nil
+local fallStart, fallHealth, swimStart, mountStart, joyrideDone, idleStart = nil, nil, nil, nil, false, nil
 local idleBird, idleCops, idleAch = false, false, false
 local wasMountedSwim = false
 
@@ -269,18 +269,26 @@ mover:SetScript("OnUpdate", function(_, dt)
     if not GTA.db or not GTA.db.enabled or UnitIsDeadOrGhost("player") then return end
     local now = GetTime()
 
-    -- Falls (no fall-damage event exists, so time the drop).
-    if IsFalling() and not IsFlying() then
-        fallStart = fallStart or now
+    -- Falls. There's no fall-damage event, so a long drop only counts if health went down on landing.
+    if IsFalling() and not IsFlying() and not UnitOnTaxi("player") then
+        if not fallStart then
+            fallStart = now
+            fallHealth = Safe(UnitHealth("player"))
+        end
     elseif fallStart then
-        local drop = now - fallStart
-        fallStart = nil
-        if drop >= 1.6 and GTA:On("mishaps") and throttle("fall", 30) then
+        local drop, before = now - fallStart, fallHealth
+        fallStart, fallHealth = nil, nil
+        if drop >= 1.2 and GTA:On("mishaps") then
             if IsSwimming() then
-                GTA:Sticker("burst_splash", nil, 0.7)
+                if drop >= 1.6 and throttle("fall", 30) then GTA:Sticker("burst_splash", nil, 0.7) end
             else
-                GTA:TextSticker("SPLAT", "red", true, 0.6)
-                GTA:Toast("That's gonna leave a mark.", nil, 3, true)
+                C_Timer.After(0.3, function()
+                    local after = Safe(UnitHealth("player"))
+                    if before and after and after < before and not UnitAffectingCombat("player") and throttle("fall", 30) then
+                        GTA:TextSticker("SPLAT", "red", true, 0.6)
+                        GTA:Toast("That's gonna leave a mark.", nil, 3, true)
+                    end
+                end)
             end
         end
     end

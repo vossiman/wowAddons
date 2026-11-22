@@ -31,7 +31,7 @@ Everything now reacts to what you actually do. Only the breaking-news ticker sti
 - **Combat stickers**: CRIT!, OOF, DENIED, NOPE, NOT TODAY, DODGED, PARRIED, BLOCKED, WHIFF
 - **Skill-ups** show as a sticker with the skill and rank, with a banner every 25 points
 - **Loot**: first green and blue of the day, JACKPOT on epics, SAFE CRACKED on chests and lockboxes, PRODUCT ACQUIRED when gathering, MANUFACTURED when crafting, FENCED when vendoring
-- **Movement**: falls (SPLAT), driving into lakes, the Coast Guard after a long swim, joyride bonus, speed cameras when riding flat out, loitering downtown, birds when you stand around outside
+- **Movement**: falls (SPLAT, only when the landing actually hurts), driving into lakes, the Coast Guard after a long swim, joyride bonus, speed cameras when riding flat out, loitering downtown, birds when you stand around outside
 - **Fights**: WALKED IT OFF at low health, UPSET OF THE YEAR on higher-level kills, long fights cool your heat, group wipes make the news, your pet getting whacked
 - **Social**: trades, inspects, guild and group invites, whispers on a burner phone, dance-offs and radio dedications
 - **Character**: lunch breaks, DUI and public intoxication, fully rested, new talent points and spells, fresh threads, repairs, hearthstone ready again, and a "Previously on Grand Theft Azeroth" recap after a break
