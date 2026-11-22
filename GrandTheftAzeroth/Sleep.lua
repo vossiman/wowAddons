@@ -121,7 +121,8 @@ ticker:SetScript("OnUpdate", function(_, dt)
         nextDream = now + 25
         GTA:Toast("|cffbfd9ffDREAMING|r\n" .. Pick(DREAMS))
     end
-    if sleeping.bag and xpTicks < 3 and dur >= (xpTicks + 1) * 60 then
+    -- Without a readable bag buff, fall back to one stack per minute like the tooltip says.
+    if sleeping.bag and not sleeping.auraStacks and xpTicks < 3 and dur >= (xpTicks + 1) * 60 + 5 then
         xpTicks = xpTicks + 1
         GTA:TextSticker("+" .. xpTicks .. "% XP", "gold", true, 0.45)
     end
@@ -138,4 +139,34 @@ GTA:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", function(unit, _, spellID)
     local ok, name = pcall(C_Spell and C_Spell.GetSpellName or GetSpellInfo, Safe(spellID))
     name = ok and Safe(name) or nil
     if name and (name:find("Sleeping Bag") or name:find("Cozy")) then C_Timer.After(1, function() fallAsleep(true) end) end
+end)
+
+-- Resting inside the bag shows up as a buff; its stack count is the real XP bonus.
+local function bagBuff()
+    if not (C_UnitAuras and C_UnitAuras.GetAuraDataByIndex) then return nil end
+    for i = 1, 40 do
+        local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
+        if not ok or not aura then break end
+        local name = Safe(aura.name)
+        if name and (name:find("Sleeping Bag") or name:find("Cozy") or name:find("Sleeping")) then
+            return Safe(aura.applications) or 1
+        end
+    end
+end
+
+-- The bonus buff stays after you get up, so only a NEW stack means you're resting in the bag right now.
+local lastStacks
+GTA:OnLogin(function() C_Timer.After(3, function() lastStacks = bagBuff() or 0 end) end)
+
+GTA:RegisterEvent("UNIT_AURA", function(unit)
+    if unit ~= "player" or lastStacks == nil or UnitAffectingCombat("player") then return end
+    local stacks = bagBuff() or 0
+    if stacks > lastStacks then
+        if not sleeping then fallAsleep(true) end
+        if sleeping and sleeping.bag then
+            sleeping.auraStacks = stacks
+            GTA:TextSticker("+" .. stacks .. "% XP", "gold", true, 0.45)
+        end
+    end
+    lastStacks = stacks
 end)
