@@ -15,7 +15,7 @@ Collections and discovery: finding something new is now a moment.
 - Combat stickers for hits on your target only show when it's your fight; other people's fights are ignored
 - Group members get small stickers on their own unit frame: CREW CRIT when the mob you're on crits them, plus OOF, NOPE, DENIED or NOT TODAY when they take a crit or avoid a hit
 - The Messages app now also lists stickers and banners, with the code line that caused each one
-- **Breaking news rewritten**: 111 deadpan headlines in a crime-radio voice (scam ads, influencers, a self-help cult, corrupt officials, obituaries, dating ads, a station owned by its sponsors), plus the community's running jokes: Xal'atath's feet, Green Jesus Thrall, Mankrik's wife, Hogger, fifty DKP minus, Leeroy, the Ironforge plague and more
+- **Breaking news rewritten**: 141 deadpan headlines in a crime-radio voice (scam ads, influencers, a self-help cult, corrupt officials, obituaries, dating ads, a station owned by its sponsors), plus the community's running jokes: Xal'atath's feet, Green Jesus Thrall, Mankrik's wife, Hogger, fifty DKP minus, Leeroy, the Ironforge plague and more. Also corrupt officials in Stormwind, Orgrimmar, Undercity, Ironforge and the goblin towns, and a bestseller list of self-help books that are very clearly Old God and fel recruitment
 - **Lying low**: the Cozy Sleeping Bag or /sleep starts a nap with cutscene bars, a dim screen, floating Z's, a nap timer, crime dreams and heat cooling 3x faster. The bag shows +1% / +2% / +3% XP as the real buff builds. Waking up says how long you slept, clears your heat after 2 minutes, and sometimes brings missed calls. Sleeping rough downtown gets you a ticket
 
 ## 0.6.0-beta
