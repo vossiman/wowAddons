@@ -179,7 +179,8 @@ cbox.body:SetTextColor(1, 1, 1)
 
 local jobs = {}        -- questID -> { title, objectives = { {text, type, have, need, done} } }
 local progress = {}    -- "questID:index" -> numFulfilled last seen
-local pinned           -- questID the player picked with the Contract app
+local pinned           -- questID the player picked by clicking (until the next quest makes progress)
+local lastActive       -- questID whose objectives moved most recently
 local scanned = false
 
 local function jobKind(job)
@@ -210,6 +211,7 @@ end
 
 local function currentJob()
     if pinned and jobs[pinned] then return pinned, jobs[pinned] end
+    if lastActive and jobs[lastActive] then return lastActive, jobs[lastActive] end
     local super = C_SuperTrack and C_SuperTrack.GetSuperTrackedQuestID and C_SuperTrack.GetSuperTrackedQuestID()
     if super and jobs[super] then return super, jobs[super] end
     local best, bestFrac, bestID
@@ -243,6 +245,9 @@ local function update()
         for i, o in ipairs(job.objectives) do
             local key = id .. ":" .. i
             local before = progress[key]
+            if scanned and before and o.have > before then
+                lastActive, pinned = id, nil
+            end
             if scanned and before and o.have > before and GTA:On("contracts") then
                 if o.done or o.have >= o.need then
                     GTA:Banner({ text = o.type == "monster" and "TARGET ELIMINATED" or "PACKAGE SECURED", color = { 0.24, 0.85, 0.35 }, sub = o.text, hold = 1.6 })
@@ -267,6 +272,7 @@ local function update()
     jobs = fresh
     scanned = true
     if pinned and not jobs[pinned] then pinned = nil end
+    if lastActive and not jobs[lastActive] then lastActive = nil end
     draw()
 end
 
