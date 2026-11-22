@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.0-beta
+
+Collections and discovery: finding something new is now a moment.
+
+- **TURF DISCOVERED** when you uncover a new area, with a running count and respect
+- **EXPANDING OPERATIONS** on new flight paths, counting your safehouse network
+- **NEW PRODUCT LINE** for recipes (a trainer haul shows as one message)
+- **NEW ASSOCIATE RECRUITED** for companion pets, **NEW WHIP IN THE GARAGE** for mounts (cutscene and confetti), **CONTRABAND ACQUIRED** for toys
+- **NEW FIT** sticker for transmog appearances (at most one a minute, plus wardrobe milestones at 10, 25, 50 and every 100 per day)
+- **STREET NAME EARNED** for titles, **NEW SKILL SET** for newly learned skills
+- New **Collection** app in the phone: garage value, associates, contraband, wardrobe value, turf, safehouses, product lines and street names
+- 5 new career achievements, and a "Collections & discovery" switch in settings
+
 ## 0.6.0-beta
 
 Everything now reacts to what you actually do. Only the breaking-news ticker still runs on a timer.

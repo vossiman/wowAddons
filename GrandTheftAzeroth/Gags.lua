@@ -251,9 +251,6 @@ end)
 GTA:RegisterEvent("CHAT_MSG_COMBAT_FACTION_CHANGE", function()
     if GTA:On("mishaps") and throttle("rep", 300) then GTA:Toast("Gang rep up. The streets are talking. Mostly about your outfit.") end
 end)
-GTA:RegisterEvent("MAP_EXPLORATION_UPDATED", function()
-    if GTA:On("mishaps") and throttle("explore", 30) then GTA:Toast("|cffffc428NEW TURF|r\nTag it before the Defias do.") end
-end)
 
 local LOOT_PREFIX = LOOT_ITEM_SELF and LOOT_ITEM_SELF:match("^(.-)%%s")
 local CREATE_PREFIX = LOOT_ITEM_CREATED_SELF and LOOT_ITEM_CREATED_SELF:match("^(.-)%%s")

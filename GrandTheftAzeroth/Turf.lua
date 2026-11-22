@@ -194,12 +194,6 @@ GTA:RegisterEvent("ZONE_CHANGED_NEW_AREA", function()
     end)
 end)
 
-GTA:RegisterEvent("CHAT_MSG_SYSTEM", function(msg)
-    msg = Safe(msg)
-    if msg and ERR_NEW_TAXIPATH and msg == ERR_NEW_TAXIPATH and GTA:On("turf") then
-        GTA:Banner({ text = "EXPANDING OPERATIONS", color = { 0.16, 0.86, 1 }, sub = "New flight path. The gryphons know your name now.", hold = 2 })
-    end
-end)
 
 ---------------------------------------------------------------- indoors
 local wasIndoors

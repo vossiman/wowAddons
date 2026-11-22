@@ -78,6 +78,11 @@ local ACHIEVEMENTS = {
     { id = "rampage10", stat = "rampages", at = 10, name = "Anger Management Dropout", desc = "10 rampages." },
     { id = "money", stat = "earned", at = 1000000, name = "First Million", desc = "Earned $1,000,000 (100 gold)." },
     { id = "taxi10", stat = "taxis", at = 10, name = "Gryphon Loyalty Card", desc = "10 flight paths." },
+    { id = "turf25", stat = "discoveries", at = 25, name = "Tourist With a Record", desc = "Discovered 25 areas." },
+    { id = "turf100", stat = "discoveries", at = 100, name = "Owns the Map", desc = "Discovered 100 areas." },
+    { id = "fits100", stat = "outfits", at = 100, name = "Fashion Criminal", desc = "Collected 100 new appearances." },
+    { id = "whips3", stat = "mounts", at = 3, name = "Car Collector", desc = "Added 3 mounts to the garage." },
+    { id = "crew5", stat = "pets", at = 5, name = "Small Crew, Big Dreams", desc = "Recruited 5 pets." },
 }
 
 GTA.ACHIEVEMENTS = ACHIEVEMENTS

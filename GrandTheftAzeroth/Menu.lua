@@ -88,7 +88,7 @@ local APPS = {
     { icon = "respect", label = function() return "Record" end, run = function() show("record", "CRIMINAL RECORD") end },
     { icon = "panel_dark", label = function() return "Messages" end, run = function() show("log", "MESSAGES") end },
     { icon = "confetti", label = function() return "Demo" end, run = function() phone:Hide() cmd("demo")() end },
-    { icon = "burst_oof", label = function() return "Prank text" end, run = function() GTA:PhoneText() end },
+    { icon = "burst_loot", label = function() return "Collection" end, run = function() show("collection", "COLLECTION") end },
     { icon = "cash", label = function() return "Volume\n" .. GTA:VolumeLabel() end, run = function()
         local steps, cur = GTA.VOLUME_STEPS, GTA:VolumeLabel()
         for i, v in ipairs(steps) do
@@ -205,6 +205,19 @@ function ach:refresh()
         table.insert(lines, got[a.id] and ("|cff5fe05f+|r " .. a.name) or ("|cff707070- " .. a.name .. "|r"))
     end
     self.text:SetText(table.concat(lines, "\n"))
+end
+
+---------------------------------------------------------------- collection
+local coll = page("collection")
+backButton(coll)
+coll.text = coll:CreateFontString(nil, "OVERLAY")
+coll.text:SetFont(GTA.FONT_BLOCK, 12, "")
+coll.text:SetPoint("TOPLEFT", 2, -2)
+coll.text:SetWidth(200)
+coll.text:SetJustifyH("LEFT")
+coll.text:SetSpacing(3)
+function coll:refresh()
+    self.text:SetText(table.concat(GTA.CollectionLines and GTA:CollectionLines() or { "Nothing collected yet." }, "\n"))
 end
 
 ---------------------------------------------------------------- message log
