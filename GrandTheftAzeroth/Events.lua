@@ -45,9 +45,26 @@ local function groupUnitFor(token)
     end
 end
 
--- "you" if you're in this fight, "group" (plus which member) if the target is fighting your group, nil otherwise.
+-- Is anyone else in the group targeting the same mob? Then a hit on it could be theirs.
+local function groupSharesTarget()
+    if not IsInGroup() then return false end
+    local raid = IsInRaid()
+    for i = 1, raid and GetNumGroupMembers() or 4 do
+        local u = (raid and "raid" or "party") .. i .. "target"
+        if not Safe(UnitIsUnit((raid and "raid" or "party") .. i, "player")) and UnitExists(u) and Safe(UnitIsUnit(u, "target")) == true then
+            return true
+        end
+    end
+    return false
+end
+
+-- "you" if it's clearly your fight, "group" (plus which member) if the target is fighting your group, nil otherwise.
+-- The combat log is blocked on this client (DBM-Core lists it as restricted), so UNIT_COMBAT never says who hit;
+-- a hit only counts as yours when nobody else in the group is on the same mob and nobody outside has tagged it.
 function GTA:TargetFight()
     if not UnitAffectingCombat("player") or not UnitExists("target") then return nil end
+    if Safe(UnitIsTapDenied("target")) == true then return nil end
+    if groupSharesTarget() then return nil end
     if Safe(UnitIsUnit("targettarget", "player")) == true or Safe(UnitIsUnit("targettarget", "pet")) == true then return "you" end
     local threat = Safe(UnitThreatSituation("player", "target"))
     if threat ~= nil then return "you" end
