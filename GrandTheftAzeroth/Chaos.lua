@@ -161,14 +161,14 @@ GTA:RegisterEvent("QUEST_TURNED_IN", function()
 end)
 
 ---------------------------------------------------------------- breaking news: the one thing still on a timer
-local RANGES = { { 600, 1200 }, { 240, 480 }, { 90, 180 } }
+-- Seconds between bulletins per news level: 1 rare, 2 default (10 to 15 minutes), 3 often.
+local RANGES = { { 1200, 1800 }, { 600, 900 }, { 300, 480 } }
 
 local function schedule()
     local r = RANGES[GTA.db.chaos or 2] or RANGES[2]
-    local wait = math.random(r[1], r[2])
-    if GTA.IsNight and GTA:IsNight() then wait = wait * 0.6 end
-    C_Timer.After(wait, function()
-        if (GTA.db.chaos or 2) > 0 and calm() then GTA:BreakingNews() end
+    C_Timer.After(math.random(r[1], r[2]), function()
+        -- No news inside dungeons, raids, battlegrounds or arenas.
+        if (GTA.db.chaos or 2) > 0 and calm() and not IsInInstance() then GTA:BreakingNews() end
         schedule()
     end)
 end
@@ -181,7 +181,7 @@ GTA:Command("chaos", "how often breaking news runs, 0-3 (0 = never)", function(a
     local n = tonumber(arg)
     if n and n >= 0 and n <= 3 then
         GTA.db.chaos = math.floor(n)
-        GTA:Print("news level " .. GTA.db.chaos .. ({ [0] = " (no news)", " (rare)", " (default)", " (24-hour news)" })[GTA.db.chaos])
+        GTA:Print("news level " .. GTA.db.chaos .. ({ [0] = " (no news)", " (every 20-30 min)", " (every 10-15 min)", " (every 5-8 min)" })[GTA.db.chaos])
     else
         GTA:Print("news level is " .. (GTA.db.chaos or 2) .. ". Use /gta chaos 0-3.")
     end
