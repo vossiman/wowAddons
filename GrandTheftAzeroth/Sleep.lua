@@ -15,6 +15,7 @@ local DREAMS = {
     "You dream of a world where loot is shared fairly. The nightmare ends there.",
 }
 
+local UNROLL_BAG, TRACKING, WELL_RESTED = 429961, 429960, 429959
 local sleeping            -- { start = t, bag = bool }
 local savedCalm, nextDream, xpTicks = 1, 0, 0
 
@@ -138,35 +139,39 @@ GTA:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", function(unit, _, spellID)
     if unit ~= "player" then return end
     local ok, name = pcall(C_Spell and C_Spell.GetSpellName or GetSpellInfo, Safe(spellID))
     name = ok and Safe(name) or nil
-    if name and (name:find("Sleeping Bag") or name:find("Cozy")) then C_Timer.After(1, function() fallAsleep(true) end) end
+    if Safe(spellID) == UNROLL_BAG or (name and (name == "Unroll Bag" or name:find("Sleeping Bag"))) then
+        C_Timer.After(1, function() fallAsleep(true) end)
+    end
 end)
 
--- Resting inside the bag shows up as a buff; its stack count is the real XP bonus.
-local function bagBuff()
-    if not (C_UnitAuras and C_UnitAuras.GetAuraDataByIndex) then return nil end
+-- Cozy Sleeping Bag spells (Wowhead, Season of Discovery, reused in Forever):
+-- 429961 Unroll Bag (places it), 429960 Well-Rested Tracking Aura (lying in it), 429959 Well-Rested (+1% XP per stack, 2 hours).
+local function bagAuras()
+    if not (C_UnitAuras and C_UnitAuras.GetAuraDataByIndex) then return 0, false end
+    local stacks, tracking = 0, false
     for i = 1, 40 do
         local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
         if not ok or not aura then break end
-        local name = Safe(aura.name)
-        if name and (name:find("Sleeping Bag") or name:find("Cozy") or name:find("Sleeping")) then
-            return Safe(aura.applications) or 1
-        end
+        local id, name = Safe(aura.spellId), Safe(aura.name)
+        if id == WELL_RESTED or (not id and name == "Well-Rested") then stacks = Safe(aura.applications) or 1 end
+        if id == TRACKING or (not id and name == "Well-Rested Tracking Aura") then tracking = true end
     end
+    return stacks, tracking
 end
 
--- The bonus buff stays after you get up, so only a NEW stack means you're resting in the bag right now.
-local lastStacks
-GTA:OnLogin(function() C_Timer.After(3, function() lastStacks = bagBuff() or 0 end) end)
+-- Lying in the bag shows as the tracking aura; each new Well-Rested stack is a real +1% XP.
+local lastStacks, wasTracking
+GTA:OnLogin(function() C_Timer.After(3, function() lastStacks, wasTracking = bagAuras() end) end)
 
 GTA:RegisterEvent("UNIT_AURA", function(unit)
     if unit ~= "player" or lastStacks == nil or UnitAffectingCombat("player") then return end
-    local stacks = bagBuff() or 0
-    if stacks > lastStacks then
+    local stacks, tracking = bagAuras()
+    if (tracking and not wasTracking) or stacks > lastStacks then
         if not sleeping then fallAsleep(true) end
-        if sleeping and sleeping.bag then
-            sleeping.auraStacks = stacks
-            GTA:TextSticker("+" .. stacks .. "% XP", "gold", true, 0.45)
-        end
     end
-    lastStacks = stacks
+    if sleeping and sleeping.bag and stacks > lastStacks then
+        sleeping.auraStacks = stacks
+        GTA:TextSticker("+" .. stacks .. "% XP", "gold", true, 0.45)
+    end
+    lastStacks, wasTracking = stacks, tracking
 end)
