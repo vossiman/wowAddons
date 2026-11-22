@@ -75,6 +75,7 @@ banner:SetScript("OnHide", function() C_Timer.After(0.1, nextBanner) end)
 
 -- opts: texture=name | text=string, color={r,g,b}, sub=string, sound=name, hold=seconds, priority=bool
 function GTA:Banner(opts)
+    self:LogEvent("banner " .. (opts.text or opts.texture or "?") .. (opts.sub and (" - " .. opts.sub:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")) or ""))
     if #queue > 4 then return end
     if opts.priority then table.insert(queue, 1, opts) else table.insert(queue, opts) end
     nextBanner()
@@ -117,6 +118,13 @@ toast:SetScript("OnHide", function() C_Timer.After(0.2, nextToast) end)
 -- Text boxes wait until combat ends so they are not missed mid-fight; urgent=true skips the wait.
 local deferred, history = {}, {}
 GTA.history = history
+
+-- Every pop-up lands in the Messages log with the file and line that caused it.
+function GTA:LogEvent(text)
+    local src = debugstack(3, 1, 0):match("([%w_]+%.lua:%d+)") or "?"
+    table.insert(history, date("%H:%M") .. "  " .. text .. "  |cff808080(" .. src .. ")|r")
+    while #history > 40 do table.remove(history, 1) end
+end
 
 function GTA:Toast(text, sound, hold, urgent)
     local plain = text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub("\n", " - ")
@@ -270,6 +278,7 @@ local STICKER_COLORS = {
 
 -- A comic burst with any text on it. near=true keeps it close to the middle (for combat).
 function GTA:TextSticker(text, color, near, scale)
+    self:LogEvent("sticker " .. text)
     local c = STICKER_COLORS[color or "gold"] or STICKER_COLORS.gold
     local s = getSticker()
     s.tex:SetTexture(self:Tex("burst_" .. c[1]))
@@ -279,7 +288,9 @@ function GTA:TextSticker(text, color, near, scale)
     s.text:SetText(text)
     s:SetScale(scale or 0.55)
     s:ClearAllPoints()
-    if near then
+    if near == "side" then
+        s:SetPoint("CENTER", UIParent, "CENTER", (math.random() < 0.5 and -1 or 1) * math.random(1150, 1350), math.random(-150, 250))
+    elseif near then
         -- A ring around the character: close enough to notice, never on top of them.
         local angle = math.rad(math.random(0, 359))
         local r = math.random(330, 460)

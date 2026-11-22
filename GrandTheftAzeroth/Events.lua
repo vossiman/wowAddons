@@ -14,6 +14,19 @@ local function calm()
 end
 
 ---------------------------------------------------------------- combat hits (UNIT_COMBAT; values may be hidden in combat, then nothing shows)
+-- "you" if you're in this fight, "group" if the target is fighting someone in your group, nil otherwise.
+function GTA:TargetFight()
+    if not UnitAffectingCombat("player") or not UnitExists("target") then return nil end
+    if Safe(UnitIsUnit("targettarget", "player")) == true or Safe(UnitIsUnit("targettarget", "pet")) == true then return "you" end
+    local threat = Safe(UnitThreatSituation("player", "target"))
+    if threat ~= nil then return "you" end
+    if IsInGroup() and UnitExists("targettarget") then
+        local inGroup = Safe(UnitInParty("targettarget")) or Safe(UnitInRaid("targettarget"))
+        if inGroup then return "group" end
+    end
+    return nil
+end
+
 local YOU_AVOIDED = { DODGE = "NOPE", PARRY = "DENIED", BLOCK = "NOT TODAY" }
 local THEY_AVOIDED = { DODGE = "DODGED", PARRY = "PARRIED", BLOCK = "BLOCKED" }
 
@@ -30,12 +43,18 @@ GTA:RegisterEvent("UNIT_COMBAT", function(unit, action, flag)
             GTA:TextSticker("TOO SLOW", "green", true, 0.4)
         end
     elseif unit == "target" then
-        if action == "WOUND" and flag == "CRITICAL" and throttle("critdealt", 3) then
-            GTA:TextSticker("CRIT!", "red", true, 0.5)
-        elseif THEY_AVOIDED[action] and throttle("denied", 5) then
-            GTA:TextSticker(THEY_AVOIDED[action], "white", true, 0.45)
-        elseif action == "MISS" and throttle("youmissed", 6) then
-            GTA:TextSticker("WHIFF", "white", true, 0.4)
+        -- Hits on your target come from anyone. Only count them when it's your fight.
+        local who = GTA:TargetFight()
+        if who == "you" then
+            if action == "WOUND" and flag == "CRITICAL" and throttle("critdealt", 3) then
+                GTA:TextSticker("CRIT!", "red", true, 0.5)
+            elseif THEY_AVOIDED[action] and throttle("denied", 5) then
+                GTA:TextSticker(THEY_AVOIDED[action], "white", true, 0.45)
+            elseif action == "MISS" and throttle("youmissed", 6) then
+                GTA:TextSticker("WHIFF", "white", true, 0.4)
+            end
+        elseif who == "group" and action == "WOUND" and flag == "CRITICAL" and throttle("critgroup", 6) then
+            GTA:TextSticker("CREW CRIT", "white", "side", 0.32)
         end
     end
 end)

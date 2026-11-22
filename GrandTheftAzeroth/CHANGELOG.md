@@ -12,6 +12,8 @@ Collections and discovery: finding something new is now a moment.
 - **STREET NAME EARNED** for titles, **NEW SKILL SET** for newly learned skills
 - New **Collection** app in the phone: garage value, associates, contraband, wardrobe value, turf, safehouses, product lines and street names
 - 5 new career achievements, and a "Collections & discovery" switch in settings
+- Combat stickers for hits on your target only show when it's your fight; if the target is fighting your group, crits show as a small CREW CRIT at the screen edge; other people's fights are ignored
+- The Messages app now also lists stickers and banners, with the code line that caused each one
 
 ## 0.6.0-beta
 
